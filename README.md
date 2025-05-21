@@ -34,6 +34,15 @@ book-strands run /path/to/your/ebooks /path/to/organized/library \
 
 Output format can be described in plain language as it is an interpreted format.
 
+## Local LLMs
+
+You can also use any local (or remote) Ollama-hosted LLM by setting `--ollama` and configuring it with the below parameters:
+
+```bash
+--ollama-model TEXT   Ollama model to use  [default: qwen3:8b]
+--ollama-url TEXT     Ollama server URL  [default: http://localhost:11434]
+```
+
 ### Testing
 
 There are a couple of functions to directly read and write ebook metadata; they are mostly intended for testing purposes if you encounter books that have unusual metadata that causes issues.

@@ -57,7 +57,7 @@ source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "ebooklib" },
-    { name = "strands-agents" },
+    { name = "strands-agents", extra = ["ollama"] },
     { name = "strands-agents-tools" },
 ]
 
@@ -74,7 +74,7 @@ dev = [
 requires-dist = [
     { name = "click", specifier = ">=8.0.0" },
     { name = "ebooklib", specifier = ">=0.19" },
-    { name = "strands-agents", specifier = ">=0.1.2" },
+    { name = "strands-agents", extras = ["ollama"], specifier = ">=0.1.2" },
     { name = "strands-agents-tools", specifier = ">=0.1.1" },
 ]
 

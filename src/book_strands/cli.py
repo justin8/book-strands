@@ -103,7 +103,22 @@ def write_book(source, destination, title, authors, series, series_index, isbn):
     show_default=True,
     help="Output format for the renamed files",
 )
-def run(input_path, output_path, output_format):
+@click.option(
+    "--ollama",
+    default=False,
+    is_flag=True,
+    help="Use an Ollama model instead of Bedrock",
+)
+@click.option(
+    "--ollama-model", default="qwen3:8b", show_default=True, help="Ollama model to use"
+)
+@click.option(
+    "--ollama-url",
+    default="http://localhost:11434",
+    show_default=True,
+    help="Ollama server URL",
+)
+def run(input_path, output_path, output_format, ollama, ollama_model, ollama_url):
     """Run the Book Strands agent."""
 
     input_files = []
@@ -120,4 +135,9 @@ def run(input_path, output_path, output_format):
     log.info(f"Found {len(input_files)} supported ebook files.")
     log.debug(f"Input files: {input_files}")
 
-    agent(input_files=input_files, output_path=output_path, output_format=output_format)
+    agent(
+        input_files=input_files,
+        output_path=output_path,
+        output_format=output_format,
+        ollama_config={"use_ollama": ollama, "model": ollama_model, "url": ollama_url},
+    )
