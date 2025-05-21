@@ -4,7 +4,12 @@ from strands_tools import http_request
 from .tools import read_ebook_metadata, write_ebook_metadata
 
 
-def agent(input_files: list[str], output_path: str, output_format: str):
+def agent(
+    input_files: list[str],
+    output_path: str,
+    output_format: str,
+    query: str = "Perform the tasks as requested.",
+):
     system_prompt = f"""
         You are in charge of making sure ebooks are tagged with the correct metadata.
         Use tools to gather the information required and then write it to the provided output folder ("{output_path}").
@@ -16,4 +21,4 @@ def agent(input_files: list[str], output_path: str, output_format: str):
         system_prompt=system_prompt,
         tools=[read_ebook_metadata, write_ebook_metadata, http_request],
     )
-    return a("Perform the tasks as requested.")
+    return a(query)

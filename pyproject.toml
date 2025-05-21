@@ -21,7 +21,14 @@ book-strands = "book_strands.cli:cli"
 dev = [
     "ruff>=0.11.10",
     "strands-agents-builder>=0.1.1",
+    "pytest>=7.0.0",
+    "pytest-mock>=3.10.0",
+    "pytest-cov>=4.0.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
 
 [build-system]
 requires = ["hatchling"]
