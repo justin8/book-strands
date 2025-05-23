@@ -30,27 +30,7 @@ def read_book(path):
     result = read_ebook_metadata(path)
 
     # Format the output nicely
-    if result.get("status") == "success":
-        click.echo(f"Title: {result.get('title', 'Unknown')}")
-
-        if result.get("authors"):
-            click.echo(f"Authors: {', '.join(result.get('authors'))}")
-        else:
-            click.echo("Authors: Unknown")
-
-        if result.get("series"):
-            series_info = result.get("series")
-            if result.get("series_index"):
-                series_info += f" #{result.get('series_index')}"
-            click.echo(f"Series: {series_info}")
-
-        if result.get("isbn"):
-            click.echo(f"ISBN: {result.get('isbn')}")
-    elif result.get("status") == "warning":
-        click.echo(f"Warning: {result.get('message', 'Unknown warning')}")
-        click.echo(json.dumps(result, indent=2))
-    else:
-        click.echo(f"Error: {result.get('message', 'Unknown error')}")
+    click.echo(json.dumps(result, indent=2))
 
 
 @cli.command()
@@ -86,7 +66,9 @@ def write_book(source, destination, title, authors, series, series_index, descri
         metadata["html_description"] = description
 
     result = write_ebook_metadata(
-        source_file_path=source, destination_file_path=destination, metadata=metadata
+        source_file_path=source,
+        destination_file_path=destination,
+        metadata=metadata,  # type: ignore
     )
 
     if result.get("status") == "success":

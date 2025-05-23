@@ -27,7 +27,7 @@ def agent(
         The book title should be purely the title of the book, without any extra information such as series or series index.
         The series name should not contain the word 'series'. If there is no series name, leave it blank.
         Note that all series indexes should be in the format 1.0, 2.0, 2.5 etc based on common practice.
-        For author names, initials and formatting, use the same format whenever that author is mentioned.
+        For author names, use "firstname lastname" ordering.
         Check the output directory for existing books by the same author to match that formatting.
         For the description of the book, it should be 100-200 words, usi a style that would typically be found on the back cover of a book and in html format.
         """

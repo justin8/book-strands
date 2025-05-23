@@ -11,7 +11,7 @@ Book Strands is designed to help you manage your e-book collection by providing 
 - **Read metadata** from e-books including title, author, series info, and ISBN
 - **Write/modify metadata** in your e-books
 - **Organize your library** by automatically renaming and moving files based on customizable patterns
-- **Support for multiple formats**: EPUB (MOBI, AZW and AZW3 are coming soon)
+- **Support for multiple formats**: EPUB, MOBI, AZW and AZW3
 - **Intelligent processing** using AI-powered tools to manage your collection
 
 ## Installation
@@ -24,6 +24,7 @@ pip install book-strands
 ## Requirements
 
 - Python 3.12 or higher
+- [Calibre](https://calibre-ebook.com/) installed
 
 ## Usage
 

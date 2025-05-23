@@ -1,82 +1,102 @@
 import os
 import tempfile
-from unittest.mock import patch
+from unittest import mock
 
-from book_strands.tools.read_ebook_metadata import extract_epub_metadata
-from book_strands.tools.write_ebook_metadata import write_epub_metadata
-
-from .conftest import CORRECT_METADATA_DIR
+from book_strands.tools.write_ebook_metadata import write_ebook_metadata
 
 
-class TestWriteEbookMetadata:
-    """Test cases for the write_ebook_metadata function."""
+def test_write_ebook_metadata_success():
+    """Test successful metadata writing."""
+    with tempfile.NamedTemporaryFile(suffix=".epub", delete=False) as tmp:
+        tmp.write(b"dummy epub content")
+        tmp_path = tmp.name
 
-    @patch("book_strands.tools.write_ebook_metadata.write_ebook_metadata")
-    def test_file_not_found(self, mock_write):
-        """Test handling of non-existent source file."""
-        mock_write.return_value = {
-            "status": "error",
-            "message": "Source file not found: non_existent_file.epub",
-        }
-        result = mock_write("non_existent_file.epub", "output.epub", {})
-        assert result["status"] == "error"
-        assert "Source file not found" in result["message"]
+    metadata = {
+        "title": "Test Title",
+        "authors": ["Author One", "Author Two"],
+        "series": "Test Series",
+        "series_index": "1",
+        "html_description": "Test Description",
+    }
 
-    @patch("book_strands.tools.write_ebook_metadata.write_ebook_metadata")
-    def test_unsupported_format(self, mock_write):
-        """Test handling of unsupported file format."""
-        with tempfile.NamedTemporaryFile(suffix=".txt") as temp_file:
-            mock_write.return_value = {
-                "status": "error",
-                "message": "Unsupported file format: .txt. Supported formats: .epub, .mobi, .azw, .azw3",
-            }
-            result = mock_write(temp_file.name, "output.txt", {})
-            assert result["status"] == "error"
-            assert "Unsupported file format" in result["message"]
+    dest_path = os.path.join(tempfile.gettempdir(), "modified.epub")
 
-    def write_temp_epub_file(self, metadata):
-        source_file = os.path.join(
-            CORRECT_METADATA_DIR,
-            "bobiverse-1.epub",
-        )
-        with tempfile.TemporaryDirectory() as temp_dir:
-            dest_file = os.path.join(temp_dir, "output.epub")
-            write_epub_metadata(source_file, dest_file, metadata)
-            return extract_epub_metadata(dest_file)
+    with (
+        mock.patch(
+            "book_strands.tools.write_ebook_metadata.subprocess.check_output"
+        ) as mock_check_output,
+        mock.patch(
+            "book_strands.tools.write_ebook_metadata.ebook_meta_binary",
+            return_value="ebook-meta",
+        ),
+    ):
+        result = write_ebook_metadata(tmp_path, dest_path, metadata)  # type: ignore
 
-    def test_write_epub_metadata_title(self):
-        """Test updating title metadata in an EPUB file."""
-        result = self.write_temp_epub_file({"title": "Updated Title Test"})
+        # Check that subprocess.check_output was called once
+        assert mock_check_output.call_count == 1
+        # Check the command arguments
+        called_args = mock_check_output.call_args[0][0]
+        assert called_args[0] == "ebook-meta"
+        assert called_args[1] == dest_path
+        assert "--title=Test Title" in called_args
+        assert "--authors=Author One & Author Two" in called_args
+        assert "--series=Test Series" in called_args
+        assert "--index=1" in called_args
+        assert "--comments=Test Description" in called_args
 
-        # Verify the result
-        assert result["status"] == "success"
-        assert result["title"] == "Updated Title Test"
-        assert result["authors"] == ["Dennis E. Taylor"]
-        assert result["series"] == "Bobiverse"
-        assert result["series_index"] == "1.0"
+    os.unlink(tmp_path)
+    if os.path.exists(dest_path):
+        os.unlink(dest_path)
 
-    def test_write_epub_metadata_authors(self):
-        """Test updating author metadata in an EPUB file."""
-        result = self.write_temp_epub_file(
-            {"authors": ["Test Author 1", "Test Author 2"]}
-        )
+    assert result["status"] == "success"
+    assert "Metadata written successfully" in result["message"]
 
-        # Verify the result
-        assert result["status"] == "success"
-        assert result["title"] == "We Are Legion (We Are Bob)"
-        assert result["authors"] == ["Test Author 1", "Test Author 2"]
-        assert result["series"] == "Bobiverse"
-        assert result["series_index"] == "1.0"
 
-    def test_write_epub_metadata_series(self):
-        """Test updating series metadata in an EPUB file."""
-        result = self.write_temp_epub_file(
-            {"series": "Updated Series Test", "series_index": "5.2"}
-        )
+def test_write_ebook_metadata_unsupported_format():
+    """Test unsupported file format."""
+    # Create a temporary file with an unsupported format
+    with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as tmp:
+        tmp.write(b"dummy content")
+        tmp_path = tmp.name
 
-        # Verify the result
-        assert result["status"] == "success"
-        assert result["title"] == "We Are Legion (We Are Bob)"
-        assert result["authors"] == ["Dennis E. Taylor"]
-        assert result["series"] == "Updated Series Test"
-        assert result["series_index"] == "5.2"
+    metadata = {"title": "Test Title"}
+    dest_path = os.path.join(tempfile.gettempdir(), "modified.txt")
+
+    # Call the function
+    result = write_ebook_metadata(tmp_path, dest_path, metadata)  # type: ignore
+
+    # Clean up
+    os.unlink(tmp_path)
+
+    assert result["status"] == "error"
+    assert "Unsupported file format" in result["message"]
+
+
+def test_write_ebook_metadata_missing_source_file():
+    """Test missing source file."""
+    metadata = {"title": "Test Title"}
+    dest_path = os.path.join(tempfile.gettempdir(), "modified.epub")
+
+    # Call the function with a non-existent file
+    result = write_ebook_metadata("/nonexistent/file.epub", dest_path, metadata)  # type: ignore
+
+    assert result["status"] == "error"
+    assert "Source file not found" in result["message"]
+
+
+def test_write_ebook_metadata_unsupported_format():
+    with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as tmp:
+        tmp.write(b"dummy content")
+        tmp_path = tmp.name
+
+    metadata = {"title": "Test Title"}
+    dest_path = os.path.join(tempfile.gettempdir(), "modified.txt")
+
+    # Call the function
+    result = write_ebook_metadata(tmp_path, dest_path, metadata)  # type: ignore
+
+    # Clean up
+    os.unlink(tmp_path)
+
+    assert result["status"] == "error"
+    assert "Unsupported file format" in result["message"]
