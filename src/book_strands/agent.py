@@ -1,3 +1,5 @@
+import logging
+
 from strands import Agent
 from strands.models.bedrock import BedrockModel
 from strands.models.ollama import OllamaModel
@@ -5,6 +7,9 @@ from strands.types.models import Model
 from strands_tools import http_request
 
 from .tools import read_ebook_metadata, write_ebook_metadata
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 
 def agent(
@@ -35,4 +40,8 @@ def agent(
         model=model,
         tools=[read_ebook_metadata, write_ebook_metadata, http_request],
     )
-    return a(query)
+
+    response = a(query)
+    log.info(f"Accumulated token usage: {response.metrics.accumulated_usage}")
+
+    return response
