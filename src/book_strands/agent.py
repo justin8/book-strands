@@ -24,6 +24,7 @@ def agent(
         Use tools to gather the information required and then write it to the provided output folder ("{output_path}").
         The expected format and path of the output files is: "{output_format}"
         The list of books to process is: {input_files}
+        The book title should be purely the title of the book, without any extra information such as series or series index.
         The series name should not contain the word 'series'. If there is no series name, leave it blank.
         Note that all series indexes should be in the format 1.0, 2.0, 2.5 etc based on common practice.
         For author names, initials and formatting, use the same format whenever that author is mentioned.
