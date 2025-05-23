@@ -1,6 +1,6 @@
 [project]
 name = "book-strands"
-version = "0.1.2"
+version = "0.2.0"
 description = "A powerful CLI tool for managing e-book metadata and organizing your digital library."
 readme = "README.md"
 authors = [
@@ -24,6 +24,7 @@ dev = [
     "pytest>=7.0.0",
     "pytest-mock>=3.10.0",
     "pytest-cov>=4.0.0",
+    "ipython>=9.2.0",
 ]
 
 [tool.pytest.ini_options]

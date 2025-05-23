@@ -33,7 +33,10 @@ def agent(
     if ollama_config and ollama_config["use_ollama"]:
         model = OllamaModel(host=ollama_config["url"], model_id=ollama_config["model"])
     else:
-        model = BedrockModel()
+        # Nova pro seems to be accurate enough for this task, and is significantly cheaper and faster.
+        model = BedrockModel(model_id="us.amazon.nova-pro-v1:0")
+        INPUT_COST_PER_THOUSAND_TOKENS = 0.0008
+        OUTPUT_COST_PER_THOUSAND_TOKENS = 0.0032
 
     a = Agent(
         system_prompt=system_prompt,
@@ -43,5 +46,16 @@ def agent(
 
     response = a(query)
     log.info(f"Accumulated token usage: {response.metrics.accumulated_usage}")
+
+    if not ollama_config or not ollama_config["use_ollama"]:
+        total_cost = (
+            response.metrics.accumulated_usage["inputTokens"]
+            / 1000
+            * INPUT_COST_PER_THOUSAND_TOKENS
+            + response.metrics.accumulated_usage["outputTokens"]
+            / 1000
+            * OUTPUT_COST_PER_THOUSAND_TOKENS
+        )
+        log.info(f"Total cost: US${total_cost:.3f}")
 
     return response
