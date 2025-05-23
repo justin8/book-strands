@@ -28,6 +28,7 @@ def write_ebook_metadata(
             "authors": list of str,
             "series": str,
             "series_index": str,
+            "html_description": str,
         }
 
     Returns:
@@ -147,6 +148,12 @@ def write_epub_metadata(source_file_path, destination_file_path, metadata):
                         {"refines": "#id-1", "property": "group-position"},
                     )
                 )
+
+        if "html_description" in metadata and metadata["html_description"]:
+            log.info(f"Updating description to: {metadata['html_description']}")
+            book.metadata["http://purl.org/dc/elements/1.1/"]["description"] = [
+                (metadata["html_description"], None)
+            ]
 
         log.info(f"Writing updated EPUB to: {destination_file_path}")
         epub.write_epub(destination_file_path, book)

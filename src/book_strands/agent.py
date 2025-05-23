@@ -28,6 +28,7 @@ def agent(
         Note that all series indexes should be in the format 1.0, 2.0, 2.5 etc based on common practice.
         For author names, initials and formatting, use the same format whenever that author is mentioned.
         Check the output directory for existing books by the same author to match that formatting.
+        For the description of the book, it should be 100-200 words, usi a style that would typically be found on the back cover of a book and in html format.
         """
     model: Model
 
