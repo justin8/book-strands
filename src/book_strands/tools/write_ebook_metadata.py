@@ -79,23 +79,20 @@ def write_epub_metadata(source_file_path, destination_file_path, metadata):
     """Write metadata to EPUB files using ebooklib"""
     log.info(f"Writing metadata to EPUB file: {source_file_path}")
     try:
-        # Read the existing EPUB
         log.debug("Loading EPUB book")
         book = epub.read_epub(source_file_path)
 
-        # Update title if provided
         if "title" in metadata and metadata["title"]:
             log.info(f"Updating title to: {metadata['title']}")
             book.metadata["http://purl.org/dc/elements/1.1/"]["title"] = [
                 (metadata["title"], {})
             ]
 
-        # Update authors if provided
         if "authors" in metadata and metadata["authors"]:
             log.info(f"Updating authors to: {metadata['authors']}")
             # Remove existing creators (authors)
             book.metadata["http://purl.org/dc/elements/1.1/"]["creator"] = []
-            # Add each author
+
             for author in metadata["authors"]:
                 log.debug(f"Adding author: {author}")
                 author_block = (
@@ -109,7 +106,6 @@ def write_epub_metadata(source_file_path, destination_file_path, metadata):
                     author_block
                 )
 
-        # Update series info if provided
         if "series" in metadata and metadata["series"]:
             log.info(f"Updating series to: {metadata['series']}")
             book.metadata["http://calibre.kovidgoyal.net/2009/metadata"]["series"] = [
@@ -121,8 +117,17 @@ def write_epub_metadata(source_file_path, destination_file_path, metadata):
                     },
                 )
             ]
+            book.metadata["http://www.idpf.org/2007/opf"][None] = [
+                (
+                    "series",
+                    {"refines": "#id-1", "property": "collection-type"},
+                ),
+                (
+                    metadata["series"],
+                    {"property": "belongs-to-collection", "id": "id-1"},
+                ),
+            ]
 
-            # Add series index if provided
             if "series_index" in metadata and metadata["series_index"]:
                 log.info(f"Updating series index to: {metadata['series_index']}")
                 book.metadata["http://calibre.kovidgoyal.net/2009/metadata"][
@@ -136,8 +141,13 @@ def write_epub_metadata(source_file_path, destination_file_path, metadata):
                         },
                     )
                 ]
+                book.metadata["http://www.idpf.org/2007/opf"][None].append(
+                    (
+                        metadata["series_index"],
+                        {"refines": "#id-1", "property": "group-position"},
+                    )
+                )
 
-        # Write the updated EPUB to the destination path
         log.info(f"Writing updated EPUB to: {destination_file_path}")
         epub.write_epub(destination_file_path, book)
 
