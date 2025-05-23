@@ -60,8 +60,8 @@ def read_book(path):
 @click.option("--authors", help="Comma-separated list of authors")
 @click.option("--series", help="Series name")
 @click.option("--series-index", help="Position in series")
-@click.option("--isbn", help="ISBN number")
-def write_book(source, destination, title, authors, series, series_index, isbn):
+@click.option("--description", help="Book description in HTML format")  # <-- New option
+def write_book(source, destination, title, authors, series, series_index, description):
     """Write metadata to an ebook file.
 
     SOURCE is the path to the source ebook file
@@ -81,6 +81,9 @@ def write_book(source, destination, title, authors, series, series_index, isbn):
         metadata["series"] = series
         if series_index:
             metadata["series_index"] = series_index
+
+    if description:
+        metadata["html_description"] = description
 
     result = write_ebook_metadata(
         source_file_path=source, destination_file_path=destination, metadata=metadata

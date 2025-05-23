@@ -60,7 +60,8 @@ book-strands write-book /path/to/source.epub /path/to/destination.epub \
   --title "New Title" \
   --authors "Author Name, Another Author" \
   --series "Series Name" \
-  --series-index "1.0"
+  --series-index "1.0" \
+  --description "A super cool book about rad things"
 ```
 
 ## Contributing

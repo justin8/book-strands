@@ -285,31 +285,6 @@ def write_mobi_metadata(source_file_path, destination_file_path, metadata):
                             metadata_elem, "{http://purl.org/dc/elements/1.1/}creator"
                         ).text = author
 
-                # Update ISBN if provided
-                if "isbn" in metadata and metadata["isbn"]:
-                    log.info(f"Updating ISBN to: {metadata['isbn']}")
-                    isbn_found = False
-                    for identifier in root.findall(".//dc:identifier", namespaces):
-                        id_text = identifier.text if identifier.text else ""
-                        if "isbn" in id_text.lower():
-                            log.debug(
-                                f"Found existing ISBN identifier, updating it from '{id_text}' to '{metadata['isbn']}'"
-                            )
-                            identifier.text = metadata["isbn"]
-                            isbn_found = True
-                            break
-
-                    if not isbn_found and metadata["isbn"]:
-                        log.debug("No ISBN identifier found, adding new one")
-                        metadata_elem = root.find(".//opf:metadata", namespaces) or root
-                        isbn_elem = ET.SubElement(
-                            metadata_elem,
-                            "{http://purl.org/dc/elements/1.1/}identifier",
-                        )
-                        isbn_elem.text = metadata["isbn"]
-                        isbn_elem.set("id", "isbn")
-                        isbn_elem.set("scheme", "ISBN")
-
                 # Update series info if provided
                 if "series" in metadata and metadata["series"]:
                     log.info(f"Updating series to: {metadata['series']}")
