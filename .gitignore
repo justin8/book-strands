@@ -7,11 +7,12 @@ wheels/
 *.egg-info
 *.bak
 .ruff_cache
+.coverage
 
 # Virtual environments
 .venv
 .direnv
 
 # Strands
-repl_state
-workflows
+/repl_state
+/workflows
