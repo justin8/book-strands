@@ -9,7 +9,6 @@ from book_strands.constants import SUPPORTED_FORMATS
 from book_strands.utils import ebook_meta_binary, file_extension
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 
 @tool

@@ -9,7 +9,6 @@ from strands_tools import http_request
 from .tools import read_ebook_metadata, write_ebook_metadata
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 
 def agent(

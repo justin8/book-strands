@@ -14,10 +14,43 @@ CONTEXT_SETTINGS = {"help_option_names": ["--help", "-h"]}
 log = logging.getLogger(__name__)
 
 
+def configure_logging(verbosity: int):
+    """Configure logging based on verbosity level."""
+    level = logging.WARN
+    if verbosity == 1:
+        level = logging.INFO
+    elif verbosity >= 2:
+        level = logging.DEBUG
+
+    # Remove all handlers from the root logger
+    root = logging.getLogger()
+    for handler in root.handlers[:]:
+        root.removeHandler(handler)
+
+    # Add a new handler with our desired format
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+    root.addHandler(handler)
+
+    # Set the level on the root logger
+    root.setLevel(level)
+
+    # Ensure the book_strands package logger inherits the level
+    book_strands_logger = logging.getLogger("book_strands")
+    book_strands_logger.propagate = True
+    book_strands_logger.setLevel(level)
+
+
 @click.group(context_settings=CONTEXT_SETTINGS)
-def cli():
+@click.option(
+    "-v",
+    "--verbose",
+    count=True,
+    help="Increase verbosity (e.g., -v for INFO, -vv for DEBUG).",
+)
+def cli(verbose):
     """Book Strands CLI tool."""
-    pass
+    configure_logging(verbose)
 
 
 @cli.command()
@@ -65,11 +98,7 @@ def write_book(source, destination, title, authors, series, series_index, descri
     if description:
         metadata["html_description"] = description
 
-    result = write_ebook_metadata(
-        source_file_path=source,
-        destination_file_path=destination,
-        metadata=metadata,  # type: ignore
-    )
+    result = write_ebook_metadata(source, destination, metadata=metadata)
 
     if result.get("status") == "success":
         click.echo(result.get("message"))
