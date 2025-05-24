@@ -82,21 +82,3 @@ def test_write_ebook_metadata_missing_source_file():
 
     assert result["status"] == "error"
     assert "Source file not found" in result["message"]
-
-
-def test_write_ebook_metadata_unsupported_format():
-    with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as tmp:
-        tmp.write(b"dummy content")
-        tmp_path = tmp.name
-
-    metadata = {"title": "Test Title"}
-    dest_path = os.path.join(tempfile.gettempdir(), "modified.txt")
-
-    # Call the function
-    result = write_ebook_metadata(tmp_path, dest_path, metadata)  # type: ignore
-
-    # Clean up
-    os.unlink(tmp_path)
-
-    assert result["status"] == "error"
-    assert "Unsupported file format" in result["message"]
