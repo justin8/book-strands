@@ -31,7 +31,7 @@ def read_ebook_metadata(file_path: str) -> dict:
         return {"status": "error", "message": f"File not found: {file_path}"}
 
     # Check file extension
-    ext = file_extension(file_path)
+    ext = file_extension(file_path).strip(".").lower()
     log.debug(f"File extension: {ext}")
 
     if ext not in SUPPORTED_FORMATS:

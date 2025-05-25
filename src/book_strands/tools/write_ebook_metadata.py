@@ -57,7 +57,7 @@ def write_ebook_metadata(
     log.debug(f"Creating destination directory if needed: {dest_dir}")
     os.makedirs(dest_dir, exist_ok=True)
 
-    ext = file_extension(source_file_path)
+    ext = file_extension(source_file_path).strip(".").lower()
     if ext in SUPPORTED_FORMATS:
         log.info(f"Found supported ebook format file: {ext}")
         return write_metadata(source_file_path, destination_file_path, metadata)

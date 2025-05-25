@@ -6,6 +6,7 @@ import click
 
 from .agent import agent
 from .constants import SUPPORTED_FORMATS
+from .tools.download_ebook import Book, download_ebook
 from .tools.read_ebook_metadata import read_ebook_metadata
 from .tools.write_ebook_metadata import write_ebook_metadata
 
@@ -74,7 +75,15 @@ def read_book(path):
 @click.option("--series", help="Series name")
 @click.option("--series-index", help="Position in series")
 @click.option("--description", help="Book description in HTML format")  # <-- New option
-def write_book(source, destination, title, authors, series, series_index, description):
+def write_book(
+    source: str,
+    destination: str,
+    title: str,
+    authors: str,
+    series: str,
+    series_index: str,
+    description: str,
+):
     """Write metadata to an ebook file.
 
     SOURCE is the path to the source ebook file
@@ -106,6 +115,19 @@ def write_book(source, destination, title, authors, series, series_index, descri
         click.echo(f"Warning: {result.get('message')}")
     else:
         click.echo(f"Error: {result.get('message', 'Unknown error')}")
+
+
+@cli.command()
+@click.argument("title", type=str)
+@click.argument("author", type=str)
+@click.argument("output-folder", type=click.Path())
+def download_book(title, author, output_folder):
+    """Download an ebook by TITLE and AUTHOR and save it to OUTPUT_FOLDER."""
+    result = download_ebook([Book(title=title, author=author)], output_folder)
+    if result:
+        click.echo("Download successful.")
+    else:
+        click.echo("An error occurred while downloading the book.")
 
 
 @cli.command()
