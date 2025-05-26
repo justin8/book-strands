@@ -37,6 +37,14 @@ def write_ebook_metadata(
             "message": "Description of the operation result"
         }
     """
+    return _write_ebook_metadata(source_file_path, destination_file_path, metadata)
+
+
+def _write_ebook_metadata(
+    source_file_path: str, destination_file_path: str, metadata: dict
+) -> dict:
+    """Write metadata to ebook files using Calibre's ebook-meta CLI tool."""
+
     log.info(f"Starting metadata write for file: {source_file_path}")
     log.debug(f"Destination file: {destination_file_path}")
     log.debug(f"Metadata to write: {metadata}")

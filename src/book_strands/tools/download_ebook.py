@@ -311,7 +311,11 @@ def get_logins():
 
 
 @tool
-def download_ebook(books: list[Book], destination_folder: str):
+def download_ebook(books: list[Book], destination_folder: str) -> bool:
+    return _download_ebook(books, destination_folder)
+
+
+def _download_ebook(books: list[Book], destination_folder: str) -> bool:
     sessions = [
         ZLibSession(email=email, password=password) for email, password in get_logins()
     ]

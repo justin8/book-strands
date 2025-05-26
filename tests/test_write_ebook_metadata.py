@@ -2,7 +2,9 @@ import os
 import tempfile
 from unittest import mock
 
-from book_strands.tools.write_ebook_metadata import write_ebook_metadata
+from book_strands.tools.write_ebook_metadata import (  # type: ignore
+    _write_ebook_metadata,
+)
 
 
 def test_write_ebook_metadata_success():
@@ -30,7 +32,7 @@ def test_write_ebook_metadata_success():
             return_value="ebook-meta",
         ),
     ):
-        result = write_ebook_metadata(tmp_path, dest_path, metadata)  # type: ignore
+        result = _write_ebook_metadata(tmp_path, dest_path, metadata)
 
         # Check that subprocess.check_output was called once
         assert mock_check_output.call_count == 1
@@ -63,7 +65,7 @@ def test_write_ebook_metadata_unsupported_format():
     dest_path = os.path.join(tempfile.gettempdir(), "modified.txt")
 
     # Call the function
-    result = write_ebook_metadata(tmp_path, dest_path, metadata)  # type: ignore
+    result = _write_ebook_metadata(tmp_path, dest_path, metadata)  # type: ignore
 
     # Clean up
     os.unlink(tmp_path)
@@ -78,7 +80,7 @@ def test_write_ebook_metadata_missing_source_file():
     dest_path = os.path.join(tempfile.gettempdir(), "modified.epub")
 
     # Call the function with a non-existent file
-    result = write_ebook_metadata("/nonexistent/file.epub", dest_path, metadata)  # type: ignore
+    result = _write_ebook_metadata("/nonexistent/file.epub", dest_path, metadata)  # type: ignore
 
     assert result["status"] == "error"
     assert "Source file not found" in result["message"]

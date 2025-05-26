@@ -4,7 +4,7 @@ from strands import Agent
 from strands.models.bedrock import BedrockModel
 from strands.models.ollama import OllamaModel
 from strands.types.models import Model
-from strands_tools import http_request
+from strands_tools import http_request  # type: ignore
 
 from .tools import read_ebook_metadata, write_ebook_metadata
 

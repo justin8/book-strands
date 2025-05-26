@@ -6,9 +6,9 @@ import click
 
 from .agent import agent
 from .constants import SUPPORTED_FORMATS
-from .tools.download_ebook import Book, download_ebook
-from .tools.read_ebook_metadata import read_ebook_metadata
-from .tools.write_ebook_metadata import write_ebook_metadata
+from .tools.download_ebook import Book, _download_ebook
+from .tools.read_ebook_metadata import _read_ebook_metadata
+from .tools.write_ebook_metadata import _write_ebook_metadata
 
 CONTEXT_SETTINGS = {"help_option_names": ["--help", "-h"]}
 
@@ -61,7 +61,7 @@ def read_book(path):
 
     PATH is the path to an ebook file (.epub, .mobi, .azw, .azw3)
     """
-    result = read_ebook_metadata(path)
+    result = _read_ebook_metadata(path)
 
     # Format the output nicely
     click.echo(json.dumps(result, indent=2))
@@ -107,7 +107,7 @@ def write_book(
     if description:
         metadata["html_description"] = description
 
-    result = write_ebook_metadata(source, destination, metadata=metadata)
+    result = _write_ebook_metadata(source, destination, metadata=metadata)
 
     if result.get("status") == "success":
         click.echo(result.get("message"))
@@ -123,7 +123,7 @@ def write_book(
 @click.argument("output-folder", type=click.Path())
 def download_book(title, author, output_folder):
     """Download an ebook by TITLE and AUTHOR and save it to OUTPUT_FOLDER."""
-    result = download_ebook([Book(title=title, author=author)], output_folder)
+    result = _download_ebook([Book(title=title, author=author)], output_folder)
     if result:
         click.echo("Download successful.")
     else:

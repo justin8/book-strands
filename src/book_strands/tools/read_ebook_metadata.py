@@ -22,6 +22,10 @@ def read_ebook_metadata(file_path: str) -> dict:
     Returns:
         A dictionary containing metadata such as title, authors, series, series_number, and ISBN
     """
+    return _read_ebook_metadata(file_path)
+
+
+def _read_ebook_metadata(file_path: str) -> dict:
     file_path = os.path.expanduser(file_path)
     log.debug(f"Expanded file path: {file_path}")
 

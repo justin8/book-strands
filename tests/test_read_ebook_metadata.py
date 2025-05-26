@@ -40,7 +40,7 @@ def test_read_ebook_metadata_success(monkeypatch):
         subprocess, "check_output", lambda *a, **kw: EXAMPLE_META_OUTPUT.encode("utf-8")
     )
     monkeypatch.setattr(rem_mod.os.path, "exists", lambda x: True)
-    result = rem_mod.read_ebook_metadata("/fake/path/book.epub")  # type: ignore
+    result = rem_mod._read_ebook_metadata("/fake/path/book.epub")
     assert result["status"] == "success"
     assert result["title"] == "The Burning God"
     assert result["series"] == "The Poppy War #3"
@@ -48,7 +48,7 @@ def test_read_ebook_metadata_success(monkeypatch):
 
 def test_read_ebook_metadata_file_not_found(monkeypatch):
     monkeypatch.setattr(rem_mod.os.path, "exists", lambda x: False)
-    result = rem_mod.read_ebook_metadata("/fake/path/book.epub")  # type: ignore
+    result = rem_mod._read_ebook_metadata("/fake/path/book.epub")
     assert result["status"] == "error"
     assert "File not found" in result["message"]
 
@@ -56,7 +56,7 @@ def test_read_ebook_metadata_file_not_found(monkeypatch):
 def test_read_ebook_metadata_unsupported_format(monkeypatch):
     monkeypatch.setattr(rem_mod.os.path, "exists", lambda x: True)
     monkeypatch.setattr(rem_mod, "file_extension", lambda x: "pdf")
-    result = rem_mod.read_ebook_metadata("/fake/path/book.pdf")  # type: ignore
+    result = rem_mod._read_ebook_metadata("/fake/path/book.pdf")
     assert result["status"] == "error"
     assert "Unsupported file format" in result["message"]
 
@@ -70,6 +70,6 @@ def test_read_ebook_metadata_subprocess_error(monkeypatch):
     monkeypatch.setattr(rem_mod, "ebook_meta_binary", lambda: "ebook-meta")
     monkeypatch.setattr(subprocess, "check_output", raise_error)
     monkeypatch.setattr(rem_mod.os.path, "exists", lambda x: True)
-    result = rem_mod.read_ebook_metadata("/fake/path/book.epub")  # type: ignore
+    result = rem_mod._read_ebook_metadata("/fake/path/book.epub")
     assert result["status"] == "error"
     assert "Failed to read metadata" in result["message"]
