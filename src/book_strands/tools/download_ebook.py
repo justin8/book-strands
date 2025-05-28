@@ -9,7 +9,7 @@ from urllib.parse import urlencode
 
 import requests
 from bs4 import BeautifulSoup
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from requests import Session
 from requests.adapters import HTTPAdapter, Retry
 from strands import tool
@@ -47,8 +47,7 @@ class Book(BaseModel):
     """
     Represents a book with its metadata and methods to fetch download links.
     Attributes:
-        title (str): The title of the book.
-        author (str): The author of the book.
+        search_query (str): The search query for the book (e.g., title and author).
         language (str): The language of the book, default is "English".
         page_url (str): The URL of the book's page on Z-Library.
         file_format (FileFormat): The format of the book file.
@@ -56,34 +55,37 @@ class Book(BaseModel):
         file_path (str): The local path where the book file will be saved.
     """
 
-    title: str = ""
-    author: str = ""
+    search_query: str = ""
     language: str = "English"
-    page_url: str = ""
-    file_format: FileFormat = FileFormat.UNDEFINED
-    download_url: str = ""
-    file_path: str = ""
+    page_url: str = Field(default="", exclude=True)
+    file_format: FileFormat = Field(default=FileFormat.UNDEFINED, exclude=True)
+    download_url: str = Field(default="", exclude=True)
+    file_path: str = Field(default="", exclude=True)
+
+    model_config = ConfigDict(
+        extra="forbid",
+        arbitrary_types_allowed=True,
+        validate_assignment=True,
+    )
 
     def __repr__(self):
-        return f"Book(title={self.title!r}, author={self.author!r})"
+        return f"Book(search_query={self.search_query!r})"
 
     def generate_filename(self):
         """Generate a sanitized filename for the book."""
-        filename = f"{self.author} - {self.title}.".title() + self.file_format.value
+        filename = f"{self.search_query}.".title() + self.file_format.value
         return re.sub(r'[<>:"/\\|?*\x00-\x1F]', "_", filename).strip()
 
     def get_download_url(self, session: Session):
         """Fetch the download URL for the book. The same session must be used for downloading as urls are per-user."""
         if self.download_url:
-            log.info(
-                f"Download URL already set for book {self.title!r} by {self.author!r}"
-            )
+            log.info(f"Download URL already set for book {self.search_query!r}")
             return self.download_url
 
         if not self.page_url:
             self.get_book_page_url()
 
-        log.info(f"Fetching download link for book: {self.title!r} by {self.author!r}")
+        log.info(f"Fetching download link for book: {self.search_query!r}")
 
         try:
             response = session.get(
@@ -101,29 +103,27 @@ class Book(BaseModel):
 
             log.error("No download link found on the book page!")
             raise Exception(
-                f"No download link found on the book page for {self.title!r} by {self.author!r}!"
+                f"No download link found on the book page for {self.search_query!r}!"
             )
 
         except Exception as e:
-            log.error(
-                f"Error fetching download link for {self.title!r} by {self.author!r}: {e}"
-            )
+            log.error(f"Error fetching download link for {self.search_query!r}: {e}")
             raise e
 
     def get_book_page_url(self):
         """Search for a book on Z-Library and return a link to the first result."""
 
         if self.page_url:
-            log.info(f"URL already set for book {self.title!r} by {self.author!r}")
-        log.info(f"Fetching URL for book: {self.title!r} by {self.author!r}")
+            log.info(f"URL already set for book {self.search_query!r}")
+        log.info(f"Fetching URL for book: {self.search_query!r}")
 
         params = {
             "content_type": "book",
-            "q": f"{self.title} {self.author}",
+            "q": self.search_query,
         }
         search_url = ZLIB_SEARCH_URL + "?" + urlencode(params)
 
-        log.info(f"Searching for book: {self.title!r} by {self.author!r}")
+        log.info(f"Searching for book: {self.search_query!r}")
 
         try:
             response = requests.get(
@@ -154,9 +154,7 @@ class Book(BaseModel):
                 log.info(f"No matching books found with extension {ext}.")
 
         except Exception as e:
-            log.error(
-                f"Error searching for book {self.title!r} by {self.author!r}: {e}"
-            )
+            log.error(f"Error searching for book {self.search_query!r}: {e}")
             raise e
 
 
@@ -270,7 +268,7 @@ class ZLibSession(BaseModel):
         Path(destination_file_path).unlink(missing_ok=True)
 
         log.debug(
-            f"Downloading book: {book.title!r} by {book.author!r} using {self.email!r} from {book.download_url!r} to {destination_file_path}"
+            f"Downloading book: {book.search_query!r} using {self.email!r} from {book.download_url!r} to {destination_file_path}"
         )
 
         try:
@@ -289,7 +287,7 @@ class ZLibSession(BaseModel):
 
         except requests.RequestException as e:
             log.error(
-                f"Error downloading book {book.title!r} by {book.author!r}: {e}",
+                f"Error downloading book {book.search_query!r}: {e}",
                 exc_info=True,
             )
             raise e
@@ -364,8 +362,6 @@ def _download_ebook(books: list[Book], destination_folder: str) -> list[Book]:
                     session_index += 1
                     continue
         except requests.RequestException as e:
-            log.error(
-                f"Network error while downloading {book.title!r} by {book.author!r}: {e}"
-            )
+            log.error(f"Network error while downloading {book.search_query!r}: {e}")
 
     return books
