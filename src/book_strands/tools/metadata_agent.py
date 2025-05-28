@@ -1,10 +1,10 @@
 import logging
 
 from strands import Agent, tool
-from strands.models.bedrock import BedrockModel
 from strands.types.models import Model
 from strands_tools import http_request  # type: ignore
 
+from book_strands.constants import BEDROCK_MODEL
 from book_strands.tools import read_ebook_metadata, write_ebook_metadata
 from book_strands.utils import calculate_bedrock_cost
 
@@ -15,13 +15,13 @@ log = logging.getLogger(__name__)
 
 @tool
 def metadata_agent(
-    input_files: list[str],
+    input_file: str,
 ):
     """
     Metadata agent to ensure the provided ebook files are tagged with the correct metadata.
 
     Args:
-        input_files (list[str]): List of input ebook files.
+        input_file (str): The path to an input ebook file.
     """
     system_prompt = """
         You are in charge of making sure ebooks are tagged with the correct metadata, you will be provided with a list of input file paths.
@@ -31,13 +31,13 @@ def metadata_agent(
         The series name should not contain the word 'series'. If there is no series name, leave it blank.
         Note that all series indexes should be in the format 1.0, 2.0, 2.5 etc based on common practice.
         For author names, use "firstname lastname" ordering.
-        For the description of the book, it should be 100-200 words, use a style that would typically be found on the back cover of a book and in html format. If there is already a description that fits this criteria, keep it the same.
+        For the description of the book, it should be 100-400 words, use a style that would typically be found on the back cover of a book and in html format. If there is already a description that fits this criteria, keep it the same.
         """
     model: Model
 
-    query = f"The input files to process are: {input_files}"
+    query = f"The input file to process is: {input_file}"
 
-    model = BedrockModel(model_id="us.amazon.nova-pro-v1:0")
+    model = BEDROCK_MODEL
     a = Agent(
         system_prompt=system_prompt,
         model=model,

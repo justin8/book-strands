@@ -1,10 +1,9 @@
 import logging
 
 from strands import Agent
-from strands.models.bedrock import BedrockModel
 from strands_tools import http_request  # type: ignore
 
-from book_strands.constants import BOOK_HANDLING_PROMPT
+from book_strands.constants import BEDROCK_MODEL, BOOK_HANDLING_PROMPT
 from book_strands.utils import calculate_bedrock_cost  # type: ignore
 
 from .tools import (
@@ -26,20 +25,22 @@ def agent(
 You are a book downloader, renamer, and metadata fixer agent.
 Your task is to download ebooks, rename them according to the provided format ({output_format}), and fix their metadata.
 The output ebooks should be saved in the specified output path ({output_path}).
+The output format should follow regular language conventions (capital letters, spaces, punctuation, etc) except where they would not be supported on a filesystem.
 
-Check the output directory for existing books by the same author to match that formatting.
-Check if the ebook files for a particular book already exist in the output folder, and if so, skip downloading them.
-If the ebook files do not exist, download them using the provided tools.
+Check the output directory for the following:
+- Any naming conventions to follow
+- If the requested books have already been downloaded (then do not download them again, just process the books that are not downloaded)
 
-You can assume the author and title in the file names are correct without verifying the metadata.
-
-From the input query, extract the list of book titles and authors to download.
+From the input query, extract the list of book titles and authors to download. This may involve using the http_request tool to look up required information.
 If the query does not contain anything that can be resolved to a book title and/or author, return an error message indicating that no books were found.
+
+If there are multiple books to download, use the download_ebook tool to download them all in a single request.
+Do not include the file extension in the request to download ebooks, check the response for the exact output filenames.
 
 {BOOK_HANDLING_PROMPT}
 """
 
-    model = BedrockModel(model_id="us.amazon.nova-pro-v1:0")
+    model = BEDROCK_MODEL
 
     a = Agent(
         system_prompt=system_prompt,

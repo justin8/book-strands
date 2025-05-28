@@ -61,9 +61,10 @@ def calculate_bedrock_cost(accumulated_usage: Usage, model: Model) -> float:
 
     pricing = BEDROCK_MODEL_PRICING.get(model_name)
     if not pricing:
-        raise ValueError(f"No pricing found for model: {model_name}")
-    input_tokens = getattr(accumulated_usage, "inputTokens", 0)
-    output_tokens = getattr(accumulated_usage, "outputTokens", 0)
+        log.error(f"No pricing found for model: {model_name}")
+        return 0
+    input_tokens = accumulated_usage["inputTokens"]
+    output_tokens = accumulated_usage["outputTokens"]
     total_cost = (
         input_tokens / 1000 * pricing["input"]
         + output_tokens / 1000 * pricing["output"]

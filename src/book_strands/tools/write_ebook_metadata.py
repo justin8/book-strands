@@ -38,7 +38,7 @@ def write_ebook_metadata(file_path: str, metadata: dict) -> dict:
 def _write_ebook_metadata(file_path: str, metadata: dict) -> dict:
     """Write metadata to ebook files using Calibre's ebook-meta CLI tool."""
 
-    log.info(f"Starting metadata write for file: {file_path}")
+    log.info(f"Starting metadata write for file: {file_path!r}")
     log.debug(f"Metadata to write: {metadata}")
 
     file_path = os.path.expanduser(file_path)
@@ -50,12 +50,13 @@ def _write_ebook_metadata(file_path: str, metadata: dict) -> dict:
     try:
         cmd = build_ebook_meta_command(file_path, metadata)
 
-        log.info(f"Running ebook-meta command: {' '.join(cmd)}")
+        log.debug(f"Running ebook-meta command: {' '.join(cmd)}")
         subprocess.check_output(cmd)
+        log.info(f"Successfully wrote ebook metadata to {file_path!r}")
 
         return {
             "status": "success",
-            "message": f"Metadata written successfully to {file_path}",
+            "message": f"Metadata written successfully to {file_path!r}",
         }
 
     except subprocess.CalledProcessError as e:
