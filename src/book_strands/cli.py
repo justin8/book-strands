@@ -1,4 +1,5 @@
 import logging
+import os
 
 import click
 
@@ -61,7 +62,7 @@ def cli(verbose):
 def run(query, output_path, output_format):
     """Run the agent with INPUT_QUERY and save results to OUTPUT_PATH."""
     query_str = " ".join(query)
-    log.info(f"Running agent with query: {query_str}")
+    output_path = os.path.expanduser(output_path)
 
     agent(query=query_str, output_path=output_path, output_format=output_format)
 
@@ -77,6 +78,9 @@ def run(query, output_path, output_format):
 )
 def import_local_books(input_path, output_path, output_format):
     """Import local ebook files from INPUT_PATH, update their metadata and rename them according to OUTPUT_FORMAT."""
+
+    input_path = os.path.expanduser(input_path)
+    output_path = os.path.expanduser(output_path)
 
     agent(
         query=f"Import local books from '{input_path}', update their metadata and rename them without downloading new books.",

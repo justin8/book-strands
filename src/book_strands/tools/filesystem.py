@@ -23,7 +23,6 @@ def path_list(file_path: str) -> dict:
 
 def _path_list(file_path: str) -> dict:
     file_path = os.path.expanduser(file_path)
-    log.debug(f"Expanded file path: {file_path}")
 
     if not os.path.exists(file_path):
         log.error(f"Directory not found: {file_path}")
@@ -70,16 +69,23 @@ def _file_move(source_path: str, destination_path: str) -> dict:
         A dictionary containing the status of the operation.
     """
 
+    source_path = os.path.expanduser(source_path)
+    destination_path = os.path.expanduser(destination_path)
+
     destination_dir = os.path.dirname(destination_path)
     os.makedirs(destination_dir, exist_ok=True)
-    log.debug(f"Moving file from {source_path} to {destination_path}")
+    log.debug(f"Moving file from {source_path!r} to {destination_path!r}")
     try:
+        try:
+            os.remove(destination_path)
+        except Exception:
+            pass
         shutil.move(source_path, destination_path)
-        log.info(f"Successfully moved {source_path} to {destination_path}")
+        log.info(f"Successfully moved {source_path!r} to {destination_path!r}")
         return {
             "status": "success",
-            "message": f"Moved {source_path} to {destination_path}",
+            "message": f"Moved {source_path!r} to {destination_path!r}",
         }
     except Exception as e:
-        log.error(f"Failed to move file: {e}")
+        log.error(f"Failed to move file {source_path!r} to {destination_path!r}: {e}")
         return {"status": "error", "message": str(e)}

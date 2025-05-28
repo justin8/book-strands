@@ -1,6 +1,9 @@
+from strands.models.bedrock import BedrockModel
+from strands.models.ollama import OllamaModel
+
 # File/config paths
 CONFIG_FILE_PATH = "~/.config/book-strands.conf"
-DEFAULT_OUTPUT_FORMAT = "{{author}}/{{series}}/{{title}}.{{extension}}"
+DEFAULT_OUTPUT_FORMAT = "{{author}}/{{series}}/{{title}}"
 
 # Supported formats (in priority order for downloads)
 SUPPORTED_FORMATS = (
@@ -32,3 +35,6 @@ The book title should be purely the title of the book, without any extra informa
 The series name should not contain the word 'series'. If there is no series name, leave it blank.
 Note that all series indexes should be in the format 1.0, 2.0, 2.5 etc based on common practice.
 """
+
+BEDROCK_MODEL = BedrockModel(model_id="us.amazon.nova-pro-v1:0")
+OLLAMA_MODEL = OllamaModel(host="http://localhost:11434", model_id="qwen3:8b")

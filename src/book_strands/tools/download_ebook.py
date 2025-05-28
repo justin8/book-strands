@@ -1,6 +1,4 @@
 import logging
-import os
-import re
 from enum import Enum
 from os import makedirs
 from os.path import dirname
@@ -22,7 +20,7 @@ from book_strands.constants import (
     ZLIB_PROFILE_URL,
     ZLIB_SEARCH_URL,
 )
-from book_strands.utils import load_book_strands_config
+from book_strands.utils import ensure_file_has_extension, load_book_strands_config
 
 WAIT_TIME = 1  # seconds to wait between book downloads and retries
 
@@ -60,7 +58,6 @@ class Book(BaseModel):
     page_url: str = Field(default="", exclude=True)
     file_format: FileFormat = Field(default=FileFormat.UNDEFINED, exclude=True)
     download_url: str = Field(default="", exclude=True)
-    file_path: str = Field(default="", exclude=True)
 
     model_config = ConfigDict(
         extra="forbid",
@@ -70,11 +67,6 @@ class Book(BaseModel):
 
     def __repr__(self):
         return f"Book(search_query={self.search_query!r})"
-
-    def generate_filename(self):
-        """Generate a sanitized filename for the book."""
-        filename = f"{self.search_query}.".title() + self.file_format.value
-        return re.sub(r'[<>:"/\\|?*\x00-\x1F]', "_", filename).strip()
 
     def get_download_url(self, session: Session):
         """Fetch the download URL for the book. The same session must be used for downloading as urls are per-user."""
@@ -115,11 +107,11 @@ class Book(BaseModel):
 
         if self.page_url:
             log.info(f"URL already set for book {self.search_query!r}")
-        log.info(f"Fetching URL for book: {self.search_query!r}")
 
         params = {
             "content_type": "book",
             "q": self.search_query,
+            "languages[0]": self.language.lower(),
         }
         search_url = ZLIB_SEARCH_URL + "?" + urlencode(params)
 
@@ -137,11 +129,7 @@ class Book(BaseModel):
                 log.debug(f"Searching for books with extension: {ext}")
                 book_cards = soup.find_all("z-bookcard", {"extension": ext})
                 log.debug(f"Found {len(book_cards)} books with extension {ext}")
-                matching_books = [
-                    b
-                    for b in book_cards
-                    if b.get("language").lower() == self.language.lower()  # type: ignore
-                ]
+                matching_books = [b for b in book_cards]
 
                 if matching_books:
                     log.info(f"Found matching books with extension {ext}")
@@ -153,6 +141,7 @@ class Book(BaseModel):
                         return
                 log.info(f"No matching books found with extension {ext}.")
 
+            raise Exception("Unable to find the book " + self.search_query)
         except Exception as e:
             log.error(f"Error searching for book {self.search_query!r}: {e}")
             raise e
@@ -238,9 +227,9 @@ class ZLibSession(BaseModel):
             log.debug(f"Raw download limit text: '{text}'")
             if "/" in text:
                 try:
-                    self.downloads_used, self.max_downloads = map(int, text.split("/"))
+                    self.downloads_used, self.downloads_max = map(int, text.split("/"))
                     log.info(
-                        f"Parsed limits - Used: {self.downloads_used}, Max: {self.max_downloads}"
+                        f"Parsed limits - Used: {self.downloads_used}, Max: {self.downloads_max}"
                     )
                     return
                 except ValueError:
@@ -248,7 +237,7 @@ class ZLibSession(BaseModel):
 
         log.error("Could not find download limits. Using default values.")
 
-    def download_book(self, book: Book, destination_folder: str):
+    def download_book(self, book: Book, destination_file_path: str) -> str:
         """Downloads the book to the specified file path."""
         if self.downloads_used >= self.downloads_max:
             log.warning(
@@ -260,10 +249,10 @@ class ZLibSession(BaseModel):
 
         if not book.download_url:
             book.get_download_url(session=self.session)
-
-        destination_file_path = os.path.join(
-            destination_folder, book.generate_filename()
+        destination_file_path = ensure_file_has_extension(
+            destination_file_path, book.file_format.value
         )
+
         makedirs(dirname(destination_file_path), exist_ok=True)
         Path(destination_file_path).unlink(missing_ok=True)
 
@@ -283,7 +272,7 @@ class ZLibSession(BaseModel):
 
             self.downloads_used += 1
             log.info(f"Downloaded book to {destination_file_path}")
-            book.file_path = destination_file_path
+            return destination_file_path
 
         except requests.RequestException as e:
             log.error(
@@ -323,45 +312,63 @@ def get_logins():
 
 
 @tool
-def download_ebook(books: list[Book], destination_folder: str) -> list[Book]:
+def download_ebook(books: list[dict]) -> list[dict]:
     """
     Downloads a list of books from Z-Library to the specified destination folder.
     Args:
-        books (list[Book]): List of Book objects to download.
-        destination_folder (str): Folder where the books will be downloaded.
+        books (list[dict]): A list of dictionaries containing the search queries and matching output file paths to download each book to. Supported keys:
+        [{
+            "search_query": str,
+            "output_file_path": str,
+        }]
+        search_query: The query to use for finding a book, e.g. the title and author
+        output_file_path: The full canonical path to save the file to.
     Returns:
-        list[Book]: List of book objects with updated file paths after download (on book.file_path).
+        A list of dicts containing the responses for each book
     """
-    return _download_ebook(books, destination_folder)
+
+    response = _download_ebook(books)
+
+    log.info(f"Finishing download_ebook call with response: {response}")
+    return response
 
 
-def _download_ebook(books: list[Book], destination_folder: str) -> list[Book]:
+def _download_ebook(books: list[dict]) -> list[dict]:
     sessions = [
         ZLibSession(email=email, password=password) for email, password in get_logins()
     ]
     session_index = 0
 
     log.info(f"Starting download process for {len(books)} books.")
-    log.debug(f"Books: {[str(book) for book in books]}")
 
+    response: list[dict] = []
     for book in books:
         try:
             while session_index < len(sessions):
                 session = sessions[session_index]
                 session_index += 1
                 if not session.login():
-                    log.info(
+                    log.error(
                         f"Failed to log in with {session.email}. Trying next account."
                     )
                     continue
 
                 try:
-                    session.download_book(book, destination_folder)
+                    book["output_file_path"] = session.download_book(
+                        Book(search_query=book["search_query"]),
+                        book["output_file_path"],
+                    )
+                    log.info(f"Succesfully downloaded {book['search_query']!r}")
+                    book["status"] = "success"
+                    response.append(book)
                 except DownloadLimitReached:
                     log.info("Switching accounts due to download limit reached.")
                     session_index += 1
                     continue
         except requests.RequestException as e:
-            log.error(f"Network error while downloading {book.search_query!r}: {e}")
+            log.error(f"Network error while downloading {book['search_query']!r}: {e}")
+            book["status"] = "failed"
+        finally:
+            response.append(book)
 
-    return books
+    return response

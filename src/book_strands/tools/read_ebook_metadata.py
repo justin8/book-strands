@@ -27,12 +27,11 @@ def read_ebook_metadata(file_path: str) -> dict:
 
 def _read_ebook_metadata(file_path: str) -> dict:
     file_path = os.path.expanduser(file_path)
-    log.debug(f"Expanded file path: {file_path}")
 
     # Check if file exists
     if not os.path.exists(file_path):
-        log.error(f"File not found: {file_path}")
-        return {"status": "error", "message": f"File not found: {file_path}"}
+        log.error(f"File not found: {file_path!r}")
+        return {"status": "error", "message": f"File not found: {file_path!r}"}
 
     # Check file extension
     ext = file_extension(file_path).strip(".").lower()
@@ -48,20 +47,19 @@ def _read_ebook_metadata(file_path: str) -> dict:
         }
 
     try:
-        log.info(f"Running ebook-meta on file: {file_path}")
         output = subprocess.check_output([ebook_meta_binary(), file_path]).decode(
             "utf-8"
         )
         log.debug(f"raw ebook-meta output: {output}")
         metadata = parse_ebook_meta_output(output)
         metadata["status"] = "success"
-        log.info(f"Successfully extracted metadata for {file_path}")
+        log.info(f"Successfully extracted metadata for {file_path!r}: {metadata!r}")
         return metadata
 
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.decode("utf-8") if e.stderr else ""
         stdout = e.stdout.decode("utf-8") if e.stdout else ""
-        log.error(f"Failed to read metadata for {file_path}: {stderr} {stdout}")
+        log.error(f"Failed to read metadata for {file_path!r}: {stderr} {stdout}")
         return {
             "status": "error",
             "message": f"Failed to read metadata: {stderr} {stdout}",
