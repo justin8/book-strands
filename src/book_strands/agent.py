@@ -2,62 +2,64 @@ import logging
 
 from strands import Agent
 from strands.models.bedrock import BedrockModel
-from strands.models.ollama import OllamaModel
-from strands.types.models import Model
 from strands_tools import http_request  # type: ignore
 
-from .tools import read_ebook_metadata, write_ebook_metadata
+from book_strands.constants import BOOK_HANDLING_PROMPT
+from book_strands.utils import calculate_bedrock_cost  # type: ignore
+
+from .tools import (
+    download_ebook,
+    file_move,
+    metadata_agent,
+    path_list,
+)
 
 log = logging.getLogger(__name__)
 
 
 def agent(
-    input_files: list[str],
     output_path: str,
     output_format: str,
-    query: str = "Perform the tasks as requested.",
-    ollama_config: dict = {},
+    query: str,
 ):
     system_prompt = f"""
-        You are in charge of making sure ebooks are tagged with the correct metadata.
-        Use tools to gather the information required and then write it to the provided output folder ("{output_path}").
-        The expected format and path of the output files is: "{output_format}"
-        The list of books to process is: {input_files}
-        The book title should be purely the title of the book, without any extra information such as series or series index.
-        The series name should not contain the word 'series'. If there is no series name, leave it blank.
-        Note that all series indexes should be in the format 1.0, 2.0, 2.5 etc based on common practice.
-        For author names, use "firstname lastname" ordering.
-        Check the output directory for existing books by the same author to match that formatting.
-        For the description of the book, it should be 100-200 words, usi a style that would typically be found on the back cover of a book and in html format.
-        """
-    model: Model
+You are a book downloader, renamer, and metadata fixer agent.
+Your task is to download ebooks, rename them according to the provided format ({output_format}), and fix their metadata.
+The output ebooks should be saved in the specified output path ({output_path}).
 
-    if ollama_config and ollama_config["use_ollama"]:
-        model = OllamaModel(host=ollama_config["url"], model_id=ollama_config["model"])
-    else:
-        # Nova pro seems to be accurate enough for this task, and is significantly cheaper and faster.
-        model = BedrockModel(model_id="us.amazon.nova-pro-v1:0")
-        INPUT_COST_PER_THOUSAND_TOKENS = 0.0008
-        OUTPUT_COST_PER_THOUSAND_TOKENS = 0.0032
+Check the output directory for existing books by the same author to match that formatting.
+Check if the ebook files for a particular book already exist in the output folder, and if so, skip downloading them.
+If the ebook files do not exist, download them using the provided tools.
+
+You can assume the author and title in the file names are correct without verifying the metadata.
+
+From the input query, extract the list of book titles and authors to download.
+If the query does not contain anything that can be resolved to a book title and/or author, return an error message indicating that no books were found.
+
+{BOOK_HANDLING_PROMPT}
+"""
+
+    model = BedrockModel(model_id="us.amazon.nova-pro-v1:0")
 
     a = Agent(
         system_prompt=system_prompt,
         model=model,
-        tools=[read_ebook_metadata, write_ebook_metadata, http_request],
+        tools=[
+            download_ebook,
+            metadata_agent,
+            file_move,
+            path_list,
+            http_request,
+        ],
     )
 
     response = a(query)
     log.info(f"Accumulated token usage: {response.metrics.accumulated_usage}")
 
-    if not ollama_config or not ollama_config["use_ollama"]:
-        total_cost = (
-            response.metrics.accumulated_usage["inputTokens"]
-            / 1000
-            * INPUT_COST_PER_THOUSAND_TOKENS
-            + response.metrics.accumulated_usage["outputTokens"]
-            / 1000
-            * OUTPUT_COST_PER_THOUSAND_TOKENS
-        )
-        log.info(f"Total cost: US${total_cost:.3f}")
+    total_cost = calculate_bedrock_cost(
+        response.metrics.accumulated_usage,
+        model,
+    )
+    log.info(f"Total cost: US${total_cost:.3f}")
 
     return response

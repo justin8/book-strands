@@ -44,12 +44,25 @@ class FileFormat(Enum):
 
 
 class Book(BaseModel):
-    title: str
-    author: str
+    """
+    Represents a book with its metadata and methods to fetch download links.
+    Attributes:
+        title (str): The title of the book.
+        author (str): The author of the book.
+        language (str): The language of the book, default is "English".
+        page_url (str): The URL of the book's page on Z-Library.
+        file_format (FileFormat): The format of the book file.
+        download_url (str): The URL to download the book file.
+        file_path (str): The local path where the book file will be saved.
+    """
+
+    title: str = ""
+    author: str = ""
     language: str = "English"
     page_url: str = ""
     file_format: FileFormat = FileFormat.UNDEFINED
     download_url: str = ""
+    file_path: str = ""
 
     def __repr__(self):
         return f"Book(title={self.title!r}, author={self.author!r})"
@@ -272,6 +285,7 @@ class ZLibSession(BaseModel):
 
             self.downloads_used += 1
             log.info(f"Downloaded book to {destination_file_path}")
+            book.file_path = destination_file_path
 
         except requests.RequestException as e:
             log.error(
@@ -311,11 +325,19 @@ def get_logins():
 
 
 @tool
-def download_ebook(books: list[Book], destination_folder: str) -> bool:
+def download_ebook(books: list[Book], destination_folder: str) -> list[Book]:
+    """
+    Downloads a list of books from Z-Library to the specified destination folder.
+    Args:
+        books (list[Book]): List of Book objects to download.
+        destination_folder (str): Folder where the books will be downloaded.
+    Returns:
+        list[Book]: List of book objects with updated file paths after download (on book.file_path).
+    """
     return _download_ebook(books, destination_folder)
 
 
-def _download_ebook(books: list[Book], destination_folder: str) -> bool:
+def _download_ebook(books: list[Book], destination_folder: str) -> list[Book]:
     sessions = [
         ZLibSession(email=email, password=password) for email, password in get_logins()
     ]
@@ -324,7 +346,6 @@ def _download_ebook(books: list[Book], destination_folder: str) -> bool:
     log.info(f"Starting download process for {len(books)} books.")
     log.debug(f"Books: {[str(book) for book in books]}")
 
-    success = True
     for book in books:
         try:
             while session_index < len(sessions):
@@ -346,5 +367,5 @@ def _download_ebook(books: list[Book], destination_folder: str) -> bool:
             log.error(
                 f"Network error while downloading {book.title!r} by {book.author!r}: {e}"
             )
-            success = False
-    return success
+
+    return books
