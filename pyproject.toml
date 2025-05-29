@@ -32,6 +32,10 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
+filterwarnings = [
+    "ignore::DeprecationWarning:docstring_parser.*:",
+    "ignore::DeprecationWarning:pydantic.*:",
+]
 
 [build-system]
 requires = ["hatchling"]
