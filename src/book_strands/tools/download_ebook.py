@@ -68,41 +68,7 @@ class Book(BaseModel):
     def __repr__(self):
         return f"Book(search_query={self.search_query!r})"
 
-    def get_download_url(self, session: Session):
-        """Fetch the download URL for the book. The same session must be used for downloading as urls are per-user."""
-        if self.download_url:
-            log.info(f"Download URL already set for book {self.search_query!r}")
-            return self.download_url
-
-        if not self.page_url:
-            self.get_book_page_url()
-
-        log.info(f"Fetching download link for book: {self.search_query!r}")
-
-        try:
-            response = session.get(
-                self.page_url, headers={"User-Agent": HEADERS["User-Agent"]}, timeout=10
-            )
-            response.raise_for_status()
-
-            soup = BeautifulSoup(response.text, "html.parser")
-            download_tag = soup.find("a", class_="addDownloadedBook")
-
-            if download_tag:
-                log.info(f"Found download link: {ZLIB_BASE_URL}{download_tag['href']}")  # type: ignore
-                self.download_url = f"{ZLIB_BASE_URL}{download_tag['href']}"  # type: ignore
-                return self.download_url
-
-            log.error("No download link found on the book page!")
-            raise Exception(
-                f"No download link found on the book page for {self.search_query!r}!"
-            )
-
-        except Exception as e:
-            log.error(f"Error fetching download link for {self.search_query!r}: {e}")
-            raise e
-
-    def get_book_page_url(self):
+    def get_book_urls(self, session: Session):
         """Search for a book on Z-Library and return a link to the first result."""
 
         if self.page_url:
@@ -118,7 +84,7 @@ class Book(BaseModel):
         log.info(f"Searching for book: {self.search_query!r}")
 
         try:
-            response = requests.get(
+            response = session.get(
                 search_url, headers={"User-Agent": HEADERS["User-Agent"]}, timeout=10
             )
             response.raise_for_status()
@@ -134,10 +100,12 @@ class Book(BaseModel):
                 if matching_books:
                     log.info(f"Found matching books with extension {ext}")
                     href = str(matching_books[0].get("href"))  # type: ignore
+                    download_url = str(matching_books[0].get("download_url"))  # type: ignore
                     if href:
                         log.info(f"First matching book page URL: {href}")
                         self.page_url = ZLIB_BASE_URL + href
                         self.file_format = FileFormat(ext)
+                        self.download_url = download_url
                         return
                 log.info(f"No matching books found with extension {ext}.")
 
@@ -179,7 +147,7 @@ class ZLibSession(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    def login(self):
+    def login(self) -> bool:
         """Logs into Z-Library and returns success status."""
         if self.logged_in:
             log.info(f"Already logged in as {self.email}")
@@ -248,7 +216,7 @@ class ZLibSession(BaseModel):
             )
 
         if not book.download_url:
-            book.get_download_url(session=self.session)
+            book.get_book_urls(this.session)
         destination_file_path = ensure_file_has_extension(
             destination_file_path, book.file_format.value
         )
