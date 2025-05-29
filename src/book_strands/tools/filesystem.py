@@ -89,3 +89,42 @@ def _file_move(source_path: str, destination_path: str) -> dict:
     except Exception as e:
         log.error(f"Failed to move file {source_path!r} to {destination_path!r}: {e}")
         return {"status": "error", "message": str(e)}
+
+
+@tool
+def file_delete(file_path: str, is_directory: bool) -> dict:
+    """
+    Delete a file or directory recursively.
+
+    Args:
+        file_path: Path to the file or directory.
+        is_directory: Required to be true in order to delete a directory
+
+    Returns:
+        A dictionary containing the status of the operation.
+    """
+    return _file_delete(file_path, is_directory)
+
+
+def _file_delete(file_path: str, is_directory: bool) -> dict:
+    file_path = os.path.expanduser(file_path)
+
+    log.debug(f"Deleting file {file_path!r}")
+    try:
+        if is_directory:
+            shutil.rmtree(file_path)
+            log.info(f"Successfully deleted directory {file_path!r}")
+            return {
+                "status": "success",
+                "message": f"Deleted directory {file_path!r}",
+            }
+
+        os.remove(file_path)
+        log.info(f"Successfully deleted {file_path!r}")
+        return {
+            "status": "success",
+            "message": f"Deleted {file_path!r}",
+        }
+    except Exception as e:
+        log.error(f"Failed to delete file or directory {file_path!r}: {e}")
+        return {"status": "error", "message": str(e)}

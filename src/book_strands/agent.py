@@ -4,6 +4,7 @@ from strands import Agent
 from strands_tools import http_request  # type: ignore
 
 from book_strands.constants import BEDROCK_MODEL, BOOK_HANDLING_PROMPT
+from book_strands.tools.filesystem import file_delete
 from book_strands.utils import calculate_bedrock_cost  # type: ignore
 
 from .tools import (
@@ -30,12 +31,15 @@ The output format should follow regular language conventions (capital letters, s
 Check the output directory for the following:
 - Any naming conventions to follow
 - If the requested books have already been downloaded (then do not download them again, just process the books that are not downloaded)
+- Unless you are asked otherwise, only call the metadata_agent on newly downloaded books
 
-From the input query, extract the list of book titles and authors to download. This may involve using the http_request tool to look up required information.
+From the input query, extract the list of book titles and authors to download. This may involve using the http_request tool to look up required information from free sources that do not need authentication.
 If the query does not contain anything that can be resolved to a book title and/or author, return an error message indicating that no books were found.
 
 If there are multiple books to download, use the download_ebook tool to download them all in a single request.
-Do not include the file extension in the request to download ebooks, check the response for the exact output filenames.
+The file extensions of ebooks do not matter, use the extensions as provided by the tools. When downloading a book you may be returned a different format ebook, this is acceptable.
+
+When you are finshed, print a summary of what books were downloaded, what ones already existed and their file paths.
 
 {BOOK_HANDLING_PROMPT}
 """
@@ -49,6 +53,7 @@ Do not include the file extension in the request to download ebooks, check the r
             download_ebook,
             metadata_agent,
             file_move,
+            file_delete,
             path_list,
             http_request,
         ],

@@ -1,4 +1,5 @@
 from .download_ebook import download_ebook as download_ebook
+from .filesystem import file_delete as file_delete
 from .filesystem import file_move as file_move
 from .filesystem import path_list as path_list
 from .metadata_agent import metadata_agent as metadata_agent
