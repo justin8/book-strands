@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+# Add permissions for the GITHUB_TOKEN
+permissions:
+  contents: write  # Needed for pushing tags
+
 jobs:
   build-and-test:
     uses: ./.github/workflows/build-test.yml
