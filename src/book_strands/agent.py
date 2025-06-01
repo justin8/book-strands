@@ -21,6 +21,9 @@ def agent(
     output_path: str,
     output_format: str,
     query: str,
+    enable_downloads: bool = True,
+    enable_deletions: bool = True,
+    enable_renaming: bool = True,
 ):
     system_prompt = f"""
 You are a book downloader, renamer, and metadata fixer agent.
@@ -45,19 +48,20 @@ When you are finshed, print a summary of what books were downloaded, what ones a
 """
 
     model = BEDROCK_MODEL
+    tools = [
+        metadata_agent,
+        path_list,
+        http_request,
+    ]
 
-    a = Agent(
-        system_prompt=system_prompt,
-        model=model,
-        tools=[
-            download_ebook,
-            metadata_agent,
-            file_move,
-            file_delete,
-            path_list,
-            http_request,
-        ],
-    )
+    if enable_downloads:
+        tools.append(download_ebook)
+    if enable_deletions:
+        tools.append(file_delete)
+    if enable_renaming:
+        tools.append(file_move)
+
+    a = Agent(system_prompt=system_prompt, model=model, tools=tools)
 
     response = a(query)
     log.info(f"Accumulated token usage: {response.metrics.accumulated_usage}")

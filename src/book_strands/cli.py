@@ -59,6 +59,31 @@ def cli(verbose):
     show_default=True,
     help="Output format for the renamed files",
 )
+@click.option("--disable-deletes", is_flag=True, help="Disable file deletions")
+@click.option("--disable-downloads", is_flag=True, help="Disable file downloads")
+@click.option("--disable-renames", is_flag=True, help="Disable file renames")
+def agent(
+    query,
+    output_path,
+    output_format,
+    disable_deletes,
+    disable_downloads,
+    disable_renames,
+):
+    """Run the agent with INPUT_QUERY and save results to OUTPUT_PATH."""
+    query_str = " ".join(query)
+    output_path = os.path.expanduser(output_path)
+
+    agent(
+        query=query_str,
+        output_path=output_path,
+        output_format=output_format,
+        enable_deletions=not disable_deletes,
+        enable_downloads=not disable_downloads,
+        enable_renaming=not disable_renames,
+    )
+
+
 def run(query, output_path, output_format):
     """Run the agent with INPUT_QUERY and save results to OUTPUT_PATH."""
     query_str = " ".join(query)
