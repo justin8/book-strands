@@ -18,11 +18,13 @@ class TestAgent(unittest.TestCase):
         self.mock_response.metrics.accumulated_usage = 100
 
     @patch("book_strands.agent.Agent")
-    def test_agent_with_all_features_enabled(self, mock_agent_class):
-        # Setup mock
+    @patch("book_strands.agent.calculate_bedrock_cost")
+    def test_agent_with_all_features_enabled(self, mock_cost, mock_agent_class):
+        # Setup mocks
         mock_agent = Mock()
         mock_agent_class.return_value = mock_agent
         mock_agent.return_value = self.mock_response
+        mock_cost.return_value = 0.001
 
         # Call agent with all features enabled
         agent(
@@ -51,11 +53,13 @@ class TestAgent(unittest.TestCase):
         self.assertEqual(kwargs["model"], BEDROCK_MODEL)
 
     @patch("book_strands.agent.Agent")
-    def test_agent_with_all_features_disabled(self, mock_agent_class):
-        # Setup mock
+    @patch("book_strands.agent.calculate_bedrock_cost")
+    def test_agent_with_all_features_disabled(self, mock_cost, mock_agent_class):
+        # Setup mocks
         mock_agent = Mock()
         mock_agent_class.return_value = mock_agent
         mock_agent.return_value = self.mock_response
+        mock_cost.return_value = 0.001
 
         # Call agent with all optional features disabled
         agent(
@@ -81,11 +85,13 @@ class TestAgent(unittest.TestCase):
         self.assertNotIn(file_move, tools)
 
     @patch("book_strands.agent.Agent")
-    def test_agent_with_mixed_features(self, mock_agent_class):
-        # Setup mock
+    @patch("book_strands.agent.calculate_bedrock_cost")
+    def test_agent_with_mixed_features(self, mock_cost, mock_agent_class):
+        # Setup mocks
         mock_agent = Mock()
         mock_agent_class.return_value = mock_agent
         mock_agent.return_value = self.mock_response
+        mock_cost.return_value = 0.001
 
         # Call agent with mixed features
         agent(
