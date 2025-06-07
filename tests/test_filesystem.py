@@ -1,40 +1,51 @@
 import os
+import shutil
 import tempfile
 from unittest import mock
 
+from book_strands.constants import SUPPORTED_FORMATS
 from book_strands.tools.filesystem import (
-    _path_list,
-    _file_move,
     _file_delete,
+    _file_move,
+    _path_list,
 )
-import shutil
 
 
 def test_path_list_success():
-    """Test successful directory listing."""
+    """Test successful directory listing (only supported ebook files)."""
+    from book_strands.constants import SUPPORTED_FORMATS
+
     with tempfile.TemporaryDirectory() as tmp_dir:
-        # Create some test files
-        test_files = ["file1.txt", "file2.txt", "subdir/file3.txt"]
-        for file_path in test_files:
+        # Create ebook and non-ebook files
+        ebook_files = [f"book1.{SUPPORTED_FORMATS[0]}", f"book2.{SUPPORTED_FORMATS[1]}"]
+        non_ebook_files = ["notes.txt", "cover.jpg", "README.md"]
+        all_files = ebook_files + non_ebook_files
+        for file_path in all_files:
             full_path = os.path.join(tmp_dir, file_path)
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
             with open(full_path, "w") as f:
                 f.write("test content")
-        
+        # Add an ebook in a subdirectory
+        subdir_ebook = os.path.join("subdir", f"nested.{SUPPORTED_FORMATS[2]}")
+        full_subdir_ebook = os.path.join(tmp_dir, subdir_ebook)
+        os.makedirs(os.path.dirname(full_subdir_ebook), exist_ok=True)
+        with open(full_subdir_ebook, "w") as f:
+            f.write("test content")
         # Call the function
         result = _path_list(tmp_dir)
-        
         # Check the result
         assert result["status"] == "success"
-        assert len(result["files"]) == 3
-        for file_path in test_files:
-            assert any(file_path in f for f in result["files"])
+        found_files = result["files"]
+        # Only ebook files should be present
+        expected_ebooks = [os.path.join(tmp_dir, f) for f in ebook_files]
+        expected_ebooks.append(os.path.join(tmp_dir, subdir_ebook))
+        assert set(found_files) == set(expected_ebooks)
 
 
 def test_path_list_directory_not_found():
     """Test directory not found error."""
     result = _path_list("/nonexistent/directory")
-    
+
     assert result["status"] == "error"
     assert "Directory not found" in result["message"]
 
@@ -43,9 +54,38 @@ def test_path_list_exception():
     """Test exception handling."""
     with mock.patch("os.walk", side_effect=Exception("Test error")):
         result = _path_list(os.path.expanduser("~"))
-        
+
         assert result["status"] == "error"
         assert "Test error" in result["message"]
+
+
+def test_path_list_success_only_ebooks():
+    """Test directory listing only returns supported ebook files."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        # Create ebook and non-ebook files
+        ebook_files = [f"book1.{SUPPORTED_FORMATS[0]}", f"book2.{SUPPORTED_FORMATS[1]}"]
+        non_ebook_files = ["notes.txt", "cover.jpg", "README.md"]
+        all_files = ebook_files + non_ebook_files
+        for file_path in all_files:
+            full_path = os.path.join(tmp_dir, file_path)
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            with open(full_path, "w") as f:
+                f.write("test content")
+        # Add an ebook in a subdirectory
+        subdir_ebook = os.path.join("subdir", f"nested.{SUPPORTED_FORMATS[2]}")
+        full_subdir_ebook = os.path.join(tmp_dir, subdir_ebook)
+        os.makedirs(os.path.dirname(full_subdir_ebook), exist_ok=True)
+        with open(full_subdir_ebook, "w") as f:
+            f.write("test content")
+        # Call the function
+        result = _path_list(tmp_dir)
+        # Check the result
+        assert result["status"] == "success"
+        found_files = result["files"]
+        # Only ebook files should be present
+        expected_ebooks = [os.path.join(tmp_dir, f) for f in ebook_files]
+        expected_ebooks.append(os.path.join(tmp_dir, subdir_ebook))
+        assert set(found_files) == set(expected_ebooks)
 
 
 def test_file_move_success():
@@ -53,17 +93,17 @@ def test_file_move_success():
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write(b"test content")
         source_path = tmp.name
-    
+
     destination_path = os.path.join(tempfile.gettempdir(), "moved_file.txt")
-    
+
     # Call the function
     result = _file_move(source_path, destination_path)
-    
+
     # Check the result
     assert result["status"] == "success"
     assert f"Moved '{source_path}' to '{destination_path}'" in result["message"]
     assert os.path.exists(destination_path)
-    
+
     # Clean up
     os.remove(destination_path)
 
@@ -72,10 +112,10 @@ def test_file_move_source_not_found():
     """Test file move with nonexistent source."""
     source_path = "/nonexistent/file.txt"
     destination_path = os.path.join(tempfile.gettempdir(), "moved_file.txt")
-    
+
     # Call the function
     result = _file_move(source_path, destination_path)
-    
+
     # Check the result
     assert result["status"] == "error"
     # The actual error message contains the specific OS error
@@ -87,24 +127,24 @@ def test_file_move_overwrite_destination():
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write(b"source content")
         source_path = tmp.name
-    
+
     # Create destination file
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write(b"destination content")
         destination_path = tmp.name
-    
+
     # Call the function
     result = _file_move(source_path, destination_path)
-    
+
     # Check the result
     assert result["status"] == "success"
     assert os.path.exists(destination_path)
-    
+
     # Verify content was overwritten
     with open(destination_path, "rb") as f:
         content = f.read()
         assert content == b"source content"
-    
+
     # Clean up
     os.remove(destination_path)
 
@@ -114,10 +154,10 @@ def test_file_delete_file_success():
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write(b"test content")
         file_path = tmp.name
-    
+
     # Call the function
     result = _file_delete(file_path, False)
-    
+
     # Check the result
     assert result["status"] == "success"
     assert f"Deleted '{file_path}'" in result["message"]
@@ -131,10 +171,10 @@ def test_file_delete_directory_success():
     test_file = os.path.join(tmp_dir, "test.txt")
     with open(test_file, "w") as f:
         f.write("test content")
-    
+
     # Call the function
     result = _file_delete(tmp_dir, True)
-    
+
     # Check the result
     assert result["status"] == "success"
     assert f"Deleted directory '{tmp_dir}'" in result["message"]
@@ -144,10 +184,10 @@ def test_file_delete_directory_success():
 def test_file_delete_file_not_found():
     """Test file deletion with nonexistent file."""
     file_path = "/nonexistent/file.txt"
-    
+
     # Call the function
     result = _file_delete(file_path, False)
-    
+
     # Check the result
     assert result["status"] == "error"
     # The actual error message contains the specific OS error
@@ -156,10 +196,10 @@ def test_file_delete_file_not_found():
 def test_file_delete_directory_not_found():
     """Test directory deletion with nonexistent directory."""
     dir_path = "/nonexistent/directory"
-    
+
     # Call the function
     result = _file_delete(dir_path, True)
-    
+
     # Check the result
     assert result["status"] == "error"
     # The actual error message contains the specific OS error
@@ -169,11 +209,11 @@ def test_file_delete_directory_without_flag():
     """Test attempting to delete a directory without is_directory=True."""
     # Create a temporary directory
     tmp_dir = tempfile.mkdtemp()
-    
+
     try:
         # Call the function with is_directory=False
         result = _file_delete(tmp_dir, False)
-        
+
         # Check the result
         assert result["status"] == "error"
         # Directory should still exist

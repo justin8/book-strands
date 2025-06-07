@@ -4,19 +4,26 @@ import shutil
 
 from strands import tool
 
+from book_strands.constants import SUPPORTED_FORMATS
+
 log = logging.getLogger(__name__)
+
+
+def _is_ebook_file(filename: str) -> bool:
+    ext = os.path.splitext(filename)[1].lower().strip(".")
+    return ext in SUPPORTED_FORMATS
 
 
 @tool
 def path_list(file_path: str) -> dict:
     """
-    List all files in a directory and its subdirectories using os.walk.
+    List all ebook files in a directory and its subdirectories using os.walk.
 
     Args:
         file_path: Path to the directory.
 
     Returns:
-        A dictionary containing the list of files in the directory and subdirectories.
+        A dictionary containing the list of ebook files in the directory and subdirectories.
     """
     return _path_list(file_path)
 
@@ -32,8 +39,9 @@ def _path_list(file_path: str) -> dict:
         files = []
         for root, _, filenames in os.walk(file_path):
             for f in filenames:
-                files.append(os.path.join(root, f))
-        log.info(f"Files in {file_path}: {files}")
+                if _is_ebook_file(f):
+                    files.append(os.path.join(root, f))
+        log.info(f"Ebook files in {file_path}: {files}")
         return {"status": "success", "files": files}
     except Exception as e:
         log.error(f"Failed to list files: {e}")
