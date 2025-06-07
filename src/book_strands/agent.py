@@ -40,6 +40,7 @@ From the input query, extract the list of book titles and authors to download. T
 If the query does not contain anything that can be resolved to a book title and/or author, return an error message indicating that no books were found.
 
 If there are multiple books to download, use the download_ebook tool to download them all in a single request.
+Only request to download each book once, even if it appears multiple times in the query.
 The file extensions of ebooks do not matter, use the extensions as provided by the tools. When downloading a book you may be returned a different format ebook, this is acceptable.
 
 When you are finshed, print a summary of what books were downloaded, what ones already existed and their file paths.

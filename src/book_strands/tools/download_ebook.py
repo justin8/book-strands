@@ -100,14 +100,16 @@ class Book(BaseModel):
                 if matching_books:
                     log.info(f"Found matching books with extension {ext}")
                     href = str(matching_books[0].get("href"))  # type: ignore
-                    download_url = str(matching_books[0].get("download_url"))  # type: ignore
+                    download_url = str(matching_books[0].get("download"))  # type: ignore
                     if href:
-                        log.info(f"First matching book page URL: {href}")
+                        log.info(
+                            f"First matching book page URL: {href!r} with download URL: {download_url!r}"
+                        )
                         self.page_url = ZLIB_BASE_URL + href
                         self.file_format = FileFormat(ext)
-                        self.download_url = download_url
+                        self.download_url = ZLIB_BASE_URL + download_url
                         return
-                log.info(f"No matching books found with extension {ext}.")
+                log.error(f"No matching books found with extension {ext}.")
 
             raise Exception("Unable to find the book " + self.search_query)
         except Exception as e:
@@ -216,7 +218,7 @@ class ZLibSession(BaseModel):
             )
 
         if not book.download_url:
-            book.get_book_urls(this.session)
+            book.get_book_urls(self.session)
         destination_file_path = ensure_file_has_extension(
             destination_file_path, book.file_format.value
         )

@@ -50,7 +50,7 @@ def cli(verbose):
     configure_logging(verbose)
 
 
-@cli.command()
+@cli.command(name="agent")
 @click.argument("output-path", type=click.Path())
 @click.argument("query", nargs=-1, type=str)
 @click.option(
@@ -62,7 +62,7 @@ def cli(verbose):
 @click.option("--disable-deletes", is_flag=True, help="Disable file deletions")
 @click.option("--disable-downloads", is_flag=True, help="Disable file downloads")
 @click.option("--disable-renames", is_flag=True, help="Disable file renames")
-def agent(
+def run(
     query,
     output_path,
     output_format,
@@ -82,14 +82,6 @@ def agent(
         enable_downloads=not disable_downloads,
         enable_renaming=not disable_renames,
     )
-
-
-def run(query, output_path, output_format):
-    """Run the agent with INPUT_QUERY and save results to OUTPUT_PATH."""
-    query_str = " ".join(query)
-    output_path = os.path.expanduser(output_path)
-
-    agent(query=query_str, output_path=output_path, output_format=output_format)
 
 
 @cli.command()

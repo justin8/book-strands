@@ -58,9 +58,9 @@ def test_book_get_book_urls_finds_epub(monkeypatch, zlib_search_html_epub):
 
     book.get_book_urls(session)
 
-    assert book.page_url.startswith("https://zlib.example")
+    assert book.page_url == "https://zlib.example/book/1055305/9a6dda/harry-potter.html"
     assert book.file_format == FileFormat.EPUB
-    assert book.download_url
+    assert book.download_url == "https://zlib.example/dl/1055305/0754e0"
 
 
 def test_book_get_book_urls_raises_when_not_found(monkeypatch):

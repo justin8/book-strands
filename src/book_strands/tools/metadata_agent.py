@@ -27,7 +27,7 @@ def metadata_agent(
         You are in charge of making sure ebooks are tagged with the correct metadata, you will be provided with a list of input file paths.
         Use the tools available to gather the information required and then write the updated metadata to the files
         The book title should be purely the title of the book, without any extra information such as series or series index.
-        Ensure that if the book is a part of a series, that the series name is correct.
+        Ensure that if the book is a part of a series, that the series name is correct. Use the book title to determine the series name by looking it up using the http_request tool.
         The series name should not contain the word 'series'. If there is no series name, leave it blank.
         Note that all series indexes should be in the format 1.0, 2.0, 2.5 etc based on common practice.
         For author names, use "firstname lastname" ordering.
