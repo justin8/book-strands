@@ -7,6 +7,7 @@ from book_strands.constants import SUPPORTED_FORMATS
 from book_strands.tools.filesystem import (
     _file_delete,
     _file_move,
+    _file_search,
     _path_list,
 )
 
@@ -222,3 +223,44 @@ def test_file_delete_directory_without_flag():
         # Clean up
         if os.path.exists(tmp_dir):
             shutil.rmtree(tmp_dir)
+
+
+def test_file_search_success():
+    """Test searching for ebook files by title and author."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        # Create ebook files with title and author in filename
+        ebook1 = f"The Great Gatsby - F. Scott Fitzgerald.{SUPPORTED_FORMATS[0]}"
+        ebook2 = f"gatsby fitzgerald.{SUPPORTED_FORMATS[1]}"
+        unrelated = f"Another Book - Someone Else.{SUPPORTED_FORMATS[0]}"
+        files = [ebook1, ebook2, unrelated]
+        for fname in files:
+            with open(os.path.join(tmp_dir, fname), "w") as f:
+                f.write("test content")
+        # Call the function
+        result = _file_search("Gatsby", "Fitzgerald", tmp_dir)
+        assert result["status"] == "success"
+        found = result["files"]
+        assert any("gatsby" in os.path.basename(f).lower() for f in found)
+        assert all("fitzgerald" in os.path.basename(f).lower() for f in found)
+        # Only the two matching ebooks should be found
+        assert len(found) == 2
+
+
+def test_file_search_no_match():
+    """Test searching for ebook files with no matches."""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        with open(
+            os.path.join(tmp_dir, f"Unrelated Book.{SUPPORTED_FORMATS[0]}"), "w"
+        ) as f:
+            f.write("test content")
+        result = _file_search("Nonexistent", "Nobody", tmp_dir)
+        assert result["status"] == "success"
+        assert result["files"] == []
+
+
+def test_file_search_exception():
+    """Test exception handling in _file_search."""
+    with mock.patch("os.walk", side_effect=Exception("Test error")):
+        result = _file_search("title", "author", os.path.expanduser("~"))
+        assert result["status"] == "error"
+        assert "Test error" in result["message"]

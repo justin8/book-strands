@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import string
 
 from strands import tool
 
@@ -45,6 +46,60 @@ def _path_list(file_path: str) -> dict:
         return {"status": "success", "files": files}
     except Exception as e:
         log.error(f"Failed to list files: {e}")
+        return {"status": "error", "message": str(e)}
+
+
+@tool
+def file_search(title: str, author: str, file_path: str) -> dict:
+    """
+    Search for ebook files in the specified directory and its subdirectories based on title and author. Use this when looking for specific books.
+
+    Args:
+        title: Title of the book.
+        author: Author of the book.
+
+    Returns:
+        A dictionary containing the list of ebook files matching the search criteria.
+    """
+    return _file_search(title, author, file_path)
+
+
+def _file_search(title: str, author: str, file_path: str) -> dict:
+    """
+    Search for ebook files in the specified directory and its subdirectories based on title and author.
+
+    Args:
+        title: Title of the book.
+        author: Author of the book.
+
+    Returns:
+        A dictionary containing the list of ebook files matching the search criteria.
+    """
+    try:
+        files = []
+        for root, _, filenames in os.walk(file_path):
+            for f in filenames:
+                if _is_ebook_file(f):
+                    # Remove punctuation and convert to lowercase
+                    filename_clean = f.lower().translate(
+                        str.maketrans("", "", string.punctuation)
+                    )
+                    title_words = [
+                        word.translate(str.maketrans("", "", string.punctuation))
+                        for word in title.lower().split()
+                    ]
+                    author_words = [
+                        word.translate(str.maketrans("", "", string.punctuation))
+                        for word in author.lower().split()
+                    ]
+                    if all(word in filename_clean for word in title_words) and all(
+                        word in filename_clean for word in author_words
+                    ):
+                        files.append(os.path.join(root, f))
+        log.info(f"Ebook files matching search criteria: {files}")
+        return {"status": "success", "files": files}
+    except Exception as e:
+        log.error(f"Failed to search for files: {e}")
         return {"status": "error", "message": str(e)}
 
 
