@@ -2,12 +2,12 @@ import unittest
 from unittest.mock import Mock, patch
 
 from book_strands.agent import agent
-from book_strands.constants import BEDROCK_MODEL
+from book_strands.constants import BEDROCK_NOVA_PRO_MODEL
 from book_strands.tools import (
     download_ebook,
     file_delete,
     file_move,
-    metadata_agent,
+    lookup_books,
     path_list,
 )
 
@@ -43,14 +43,14 @@ class TestAgent(unittest.TestCase):
         tools = kwargs["tools"]
 
         # Verify all expected tools are present
-        self.assertIn(metadata_agent, tools)
+        self.assertIn(lookup_books, tools)
         self.assertIn(path_list, tools)
         self.assertIn(download_ebook, tools)
         self.assertIn(file_delete, tools)
         self.assertIn(file_move, tools)
 
         # Verify model is correct
-        self.assertEqual(kwargs["model"], BEDROCK_MODEL)
+        self.assertEqual(kwargs["model"], BEDROCK_NOVA_PRO_MODEL)
 
     @patch("book_strands.agent.Agent")
     @patch("book_strands.agent.calculate_bedrock_cost")
@@ -76,7 +76,7 @@ class TestAgent(unittest.TestCase):
         tools = kwargs["tools"]
 
         # Verify only base tools are present
-        self.assertIn(metadata_agent, tools)
+        self.assertIn(lookup_books, tools)
         self.assertIn(path_list, tools)
 
         # Verify optional tools are not present
@@ -108,7 +108,7 @@ class TestAgent(unittest.TestCase):
         tools = kwargs["tools"]
 
         # Verify expected tools are present
-        self.assertIn(metadata_agent, tools)
+        self.assertIn(lookup_books, tools)
         self.assertIn(path_list, tools)
         self.assertIn(download_ebook, tools)
         self.assertIn(file_move, tools)

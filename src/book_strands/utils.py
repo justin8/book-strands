@@ -42,6 +42,10 @@ BEDROCK_MODEL_PRICING = {
         "input": 0.0008,
         "output": 0.0032,
     },
+    "us.anthropic.claude-3-7-sonnet-20250219-v1:0": {
+        "input": 0.003,
+        "output": 0.015,
+    },
     # Add more models and their prices here as needed
 }
 

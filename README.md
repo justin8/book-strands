@@ -35,6 +35,24 @@ book-strands run /path/to/your/ebooks /path/to/organized/library \
 
 Output format can be described in plain language as it is an interpreted format.
 
+You can also import and organize existing e-book files:
+
+```bash
+book-strands import-local-books /path/to/existing/books /path/to/organized/library
+```
+
+## Configuration
+
+Book Strands uses a configuration file located at `~/.config/book-strands.conf`. Here's an example configuration:
+
+```ini
+[zlib-logins]
+user1@example.com = password1
+user2@example.com = password2
+```
+
+The `zlib-logins` section contains email and password pairs for Z-Library accounts used for downloading books.
+
 ## Local LLMs
 
 You can also use any local (or remote) Ollama-hosted LLM by setting `--ollama` and configuring it with the below parameters:
@@ -44,25 +62,27 @@ You can also use any local (or remote) Ollama-hosted LLM by setting `--ollama` a
 --ollama-url TEXT     Ollama server URL  [default: http://localhost:11434]
 ```
 
-### Testing
+## Development
 
-There are a couple of functions to directly read and write ebook metadata; they are mostly intended for testing purposes if you encounter books that have unusual metadata that causes issues.
+To enable tracing of agent requests, start a Jaeger instance and set the below environment variable, then access Jaeger on <http://localhost:16686>
 
-#### Read metadata from an e-book
-
-```bash
-book-strands read-book /path/to/your/book.epub
 ```
+docker run -d --name jaeger \
+  -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 \
+  -e COLLECTOR_OTLP_ENABLED=true \
+  -p 6831:6831/udp \
+  -p 6832:6832/udp \
+  -p 5778:5778 \
+  -p 16686:16686 \
+  -p 4317:4317 \
+  -p 4318:4318 \
+  -p 14250:14250 \
+  -p 14268:14268 \
+  -p 14269:14269 \
+  -p 9411:9411 \
+  jaegertracing/all-in-one:latest
 
-#### Write metadata to an e-book
-
-```bash
-book-strands write-book /path/to/source.epub /path/to/destination.epub \
-  --title "New Title" \
-  --authors "Author Name, Another Author" \
-  --series "Series Name" \
-  --series-index "1.0" \
-  --description "A super cool book about rad things"
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318"
 ```
 
 ## Contributing

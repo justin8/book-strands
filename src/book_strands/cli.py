@@ -3,6 +3,8 @@ import os
 
 import click
 
+from book_strands.utils import load_book_strands_config
+
 from .agent import agent
 from .constants import DEFAULT_OUTPUT_FORMAT
 
@@ -10,13 +12,19 @@ CONTEXT_SETTINGS = {"help_option_names": ["--help", "-h"]}
 
 log = logging.getLogger(__name__)
 
+# Load the configuration to ensure it exists before making requeests
+config = load_book_strands_config()
+
 
 def configure_logging(verbosity: int):
     """Configure logging based on verbosity level."""
     level = logging.WARN
     if verbosity == 1:
         level = logging.INFO
-    elif verbosity >= 2:
+    elif verbosity == 2:
+        level = logging.INFO
+        logging.getLogger("strands").setLevel(logging.DEBUG)
+    elif verbosity >= 3:
         level = logging.DEBUG
 
     # Remove all handlers from the root logger

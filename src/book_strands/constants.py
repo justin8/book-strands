@@ -31,10 +31,14 @@ HEADERS = {
 
 # Prompts
 BOOK_HANDLING_PROMPT = """
+IMPORTANT:
 The book title should be purely the title of the book, without any extra information such as series or series index.
 The series name should not contain the word 'series'. If there is no series name, leave it blank.
 Note that all series indexes should be in the format 1.0, 2.0, 2.5 etc based on common practice.
 """
 
-BEDROCK_MODEL = BedrockModel(model_id="us.amazon.nova-pro-v1:0")
+BEDROCK_NOVA_PRO_MODEL = BedrockModel(model_id="us.amazon.nova-pro-v1:0")
+BEDROCK_CLAUDE_37_MODEL = BedrockModel(
+    model_id="us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+)
 OLLAMA_MODEL = OllamaModel(host="http://localhost:11434", model_id="qwen3:8b")
