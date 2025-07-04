@@ -43,14 +43,13 @@ Check the output directory for the following:
 - If the requested books have already been downloaded then do not download them again, just process the other books that are not downloaded if multiple have been requested)
 - Unless you are asked otherwise, do not write metadata to existing files, only to new files that you download.
 
-From the input query, extract the list of book titles and authors to download. This may involve using the http_request tool to look up required information from free sources that do not need authentication.
-If the query does not contain anything that can be resolved to a book title and/or author, return an error message indicating that no books were found.
+From the input query, if there is no clear action, extract the list of book titles and authors to download. If the query does not contain anything that can be resolved to a book title and/or author, return an error message indicating that no books were found. Use the available tools to look up books based on the query, and return a list of books that match the query.
 
 If there are multiple books to download, use the download_ebook tool to download them all in a single request.
 Only request to download each book once, even if it appears multiple times in the query.
 The file extensions of ebooks do not matter, use the extensions as provided by the tools. When downloading a book you may be returned a different format ebook, this is acceptable.
 
-When you are finshed, print a summary of what books were downloaded, what ones already existed and their file paths.
+When you are finshed, print a summary of what changes you made, which books were downloaded, what ones already existed and their file paths.
 
 {BOOK_HANDLING_PROMPT}
 """
