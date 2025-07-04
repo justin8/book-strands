@@ -19,6 +19,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     outputs:
       new_version: ${{ steps.tag_releases.outputs.new_version }}
+      version_changed: ${{ steps.tag_releases.outputs.version_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
