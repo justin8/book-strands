@@ -1,5 +1,11 @@
 # Book Strands
 
+[![Current version](https://badge.fury.io/py/book-strands.svg)](https://badge.fury.io/py/book-strands)
+[![Downloads](https://pepy.tech/badge/book-strands/month)](https://pepy.tech/project/book-strands)
+
+[![Build status](https://github.com/justin8/book-strands/actions/workflows/build-test.yml/badge.svg)](https://github.com/justin8/book-strands/actions/workflows/build-test.yml)
+[![codecov](https://codecov.io/gh/justin8/book-strands/branch/master/graph/badge.svg)](https://codecov.io/gh/justin8/book-strands)
+
 A powerful CLI tool for managing e-book metadata and organizing your digital library.
 
 ## Overview
