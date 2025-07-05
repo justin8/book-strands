@@ -203,7 +203,6 @@ def test_zlibsession_download_book_success(monkeypatch, tmp_path):
 
 
 def test_zlibsession_download_book_limit(monkeypatch):
-    download_ebook_mod = sys.modules["book_strands.tools.download_ebook"]
     session = requests.Session()
     zs = ZLibSession(email="a@b.com", password="pw", session=session)
     zs.downloads_used = 2

@@ -31,11 +31,10 @@ def test_write_ebook_metadata_success():
         ),
         mock.patch(
             "book_strands.tools.write_ebook_metadata.is_valid_ebook",
-            return_value={"status": "success"}
+            return_value={"status": "success"},
         ),
         mock.patch(
-            "book_strands.tools.write_ebook_metadata.os.path.exists",
-            return_value=True
+            "book_strands.tools.write_ebook_metadata.os.path.exists", return_value=True
         ),
     ):
         result = _write_ebook_metadata(tmp_path, metadata)
@@ -68,12 +67,17 @@ def test_write_ebook_metadata_unsupported_format():
     metadata = {"title": "Test Title"}
 
     # Mock is_valid_ebook to return an error for unsupported format
-    with mock.patch(
-        "book_strands.tools.write_ebook_metadata.is_valid_ebook",
-        return_value={"status": "error", "message": "Unsupported file format: .txt"}
-    ), mock.patch(
-        "book_strands.tools.write_ebook_metadata.os.path.exists",
-        return_value=True
+    with (
+        mock.patch(
+            "book_strands.tools.write_ebook_metadata.is_valid_ebook",
+            return_value={
+                "status": "error",
+                "message": "Unsupported file format: .txt",
+            },
+        ),
+        mock.patch(
+            "book_strands.tools.write_ebook_metadata.os.path.exists", return_value=True
+        ),
     ):
         # Call the function
         result = _write_ebook_metadata(tmp_path, metadata)  # type: ignore
@@ -88,7 +92,6 @@ def test_write_ebook_metadata_unsupported_format():
 def test_write_ebook_metadata_missing_source_file():
     """Test missing source file."""
     metadata = {"title": "Test Title"}
-    dest_path = os.path.join(tempfile.gettempdir(), "modified.epub")
 
     # Call the function with a non-existent file
     result = _write_ebook_metadata("/nonexistent/file.epub", metadata)  # type: ignore
