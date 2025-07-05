@@ -12,3 +12,4 @@ jobs:
   tag-and-publish:
     uses: justin8/workflows/.github/workflows/python-tag-and-publish.yml@main
     needs: build-and-test
+    secrets: inherit

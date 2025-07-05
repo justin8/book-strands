@@ -1,6 +1,6 @@
 [project]
 name = "book-strands"
-version = "0.7.4"
+version = "0.7.5"
 description = "A powerful CLI tool for managing e-book metadata and organizing your digital library."
 readme = "README.md"
 authors = [
