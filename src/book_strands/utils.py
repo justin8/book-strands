@@ -45,9 +45,9 @@ def check_requirements() -> None:
         errors.append(f"Config file not found at {config_path}")
 
     # Check ebook-meta binary
-    binary_path = ebook_meta_binary()
-    if not shutil.which(binary_path):
-        errors.append(f"ebook-meta binary not found: {binary_path}")
+    binary_cmd = ebook_meta_binary()
+    if not shutil.which(binary_cmd[0]):
+        errors.append(f"ebook-meta binary not found: {binary_cmd[0]}")
 
     if errors:
         for error in errors:
@@ -66,11 +66,14 @@ def check_requirements() -> None:
 
 
 def ebook_meta_binary():
-    """Get the path to the ebook-meta binary"""
+    """Get the command list to run ebook-meta binary"""
     if sys.platform == "darwin":
-        return "/Applications/calibre.app/Contents/MacOS/ebook-meta"
-    else:
-        return "ebook-meta"
+        return ["/Applications/calibre.app/Contents/MacOS/ebook-meta"]
+
+    binary_path = shutil.which("ebook-meta")
+    if binary_path and binary_path.startswith("/usr/"):
+        return ["/usr/bin/python", binary_path]
+    return ["ebook-meta"]
 
 
 BEDROCK_MODEL_PRICING = {

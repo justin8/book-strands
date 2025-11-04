@@ -27,7 +27,7 @@ def test_write_ebook_metadata_success():
         ) as mock_check_output,
         mock.patch(
             "book_strands.tools.write_ebook_metadata.ebook_meta_binary",
-            return_value="ebook-meta",
+            return_value=["ebook-meta"],
         ),
         mock.patch(
             "book_strands.tools.write_ebook_metadata.is_valid_ebook",

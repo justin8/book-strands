@@ -115,7 +115,7 @@ def test_check_requirements_all_good():
 
         with (
             patch("book_strands.utils.CONFIG_FILE_PATH", config_file),
-            patch("book_strands.utils.ebook_meta_binary", return_value=binary_file),
+            patch("book_strands.utils.ebook_meta_binary", return_value=[binary_file]),
         ):
             # Should not exit or raise exception
             check_requirements()
@@ -132,7 +132,7 @@ def test_check_requirements_missing_config():
 
         with (
             patch("book_strands.utils.CONFIG_FILE_PATH", "/nonexistent/config.conf"),
-            patch("book_strands.utils.ebook_meta_binary", return_value=binary_file),
+            patch("book_strands.utils.ebook_meta_binary", return_value=[binary_file]),
         ):
             with pytest.raises(SystemExit) as exc_info:
                 check_requirements()
@@ -151,7 +151,7 @@ def test_check_requirements_missing_binary():
             patch("book_strands.utils.CONFIG_FILE_PATH", config_file),
             patch(
                 "book_strands.utils.ebook_meta_binary",
-                return_value="/nonexistent/ebook-meta",
+                return_value=["/nonexistent/ebook-meta"],
             ),
         ):
             with pytest.raises(SystemExit) as exc_info:
@@ -175,7 +175,7 @@ def test_check_requirements_non_executable_binary():
 
         with (
             patch("book_strands.utils.CONFIG_FILE_PATH", config_file),
-            patch("book_strands.utils.ebook_meta_binary", return_value=binary_file),
+            patch("book_strands.utils.ebook_meta_binary", return_value=[binary_file]),
         ):
             with pytest.raises(SystemExit) as exc_info:
                 check_requirements()
@@ -188,7 +188,7 @@ def test_check_requirements_both_missing():
         patch("book_strands.utils.CONFIG_FILE_PATH", "/nonexistent/config.conf"),
         patch(
             "book_strands.utils.ebook_meta_binary",
-            return_value="/nonexistent/ebook-meta",
+            return_value=["/nonexistent/ebook-meta"],
         ),
     ):
         with pytest.raises(SystemExit) as exc_info:

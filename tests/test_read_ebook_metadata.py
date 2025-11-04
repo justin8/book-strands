@@ -35,7 +35,7 @@ def test_parse_ebook_meta_output():
 
 
 def test_read_ebook_metadata_success(monkeypatch):
-    monkeypatch.setattr(rem_mod, "ebook_meta_binary", lambda: "ebook-meta")
+    monkeypatch.setattr(rem_mod, "ebook_meta_binary", lambda: ["ebook-meta"])
     monkeypatch.setattr(
         subprocess, "check_output", lambda *a, **kw: EXAMPLE_META_OUTPUT.encode("utf-8")
     )
@@ -67,7 +67,7 @@ def test_read_ebook_metadata_subprocess_error(monkeypatch):
             1, "ebook-meta", output=b"", stderr=b"error output"
         )
 
-    monkeypatch.setattr(rem_mod, "ebook_meta_binary", lambda: "ebook-meta")
+    monkeypatch.setattr(rem_mod, "ebook_meta_binary", lambda: ["ebook-meta"])
     monkeypatch.setattr(subprocess, "check_output", raise_error)
     monkeypatch.setattr(rem_mod.os.path, "exists", lambda x: True)
     result = rem_mod._read_ebook_metadata("/fake/path/book.epub")

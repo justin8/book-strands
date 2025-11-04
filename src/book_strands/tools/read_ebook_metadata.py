@@ -47,7 +47,7 @@ def _read_ebook_metadata(file_path: str) -> dict:
         }
 
     try:
-        output = subprocess.check_output([ebook_meta_binary(), file_path]).decode(
+        output = subprocess.check_output(ebook_meta_binary() + [file_path]).decode(
             "utf-8"
         )
         log.debug(f"raw ebook-meta output: {output}")

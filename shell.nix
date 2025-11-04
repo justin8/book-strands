@@ -6,7 +6,7 @@ pkgs.mkShell {
     (python312.withPackages(ps: with ps; [
       uv
     ]))
-    poetry
+    calibre
     git
   ];
 

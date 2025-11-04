@@ -70,7 +70,7 @@ def _write_ebook_metadata(file_path: str, metadata: dict) -> dict:
 def build_ebook_meta_command(file_path, metadata):
     """Build the ebook-meta command list for subprocess.run, using the correct path for macOS."""
 
-    cmd = [ebook_meta_binary(), file_path]
+    cmd = ebook_meta_binary() + [file_path]
     if "title" in metadata and metadata["title"]:
         cmd.append(f"--title={metadata['title']}")
     if "authors" in metadata and metadata["authors"]:
