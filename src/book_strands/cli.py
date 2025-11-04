@@ -6,7 +6,7 @@ import click
 from book_strands.utils import check_requirements
 
 from .agent import agent
-from .constants import DEFAULT_OUTPUT_FORMAT
+from .constants import DEFAULT_OUTPUT_PATH
 
 CONTEXT_SETTINGS = {"help_option_names": ["--help", "-h"]}
 
@@ -65,7 +65,7 @@ def _ensure_requirements():
 @click.argument("query", nargs=-1, type=str)
 @click.option(
     "--output-format",
-    default=DEFAULT_OUTPUT_FORMAT,
+    default=DEFAULT_OUTPUT_PATH,
     show_default=True,
     help="Output format for the renamed files",
 )
@@ -100,7 +100,7 @@ def run(
 @click.argument("output-path", type=click.Path())
 @click.option(
     "--output-format",
-    default=DEFAULT_OUTPUT_FORMAT,
+    default=DEFAULT_OUTPUT_PATH,
     show_default=True,
     help="Output format for the renamed files",
 )

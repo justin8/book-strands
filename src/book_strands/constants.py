@@ -3,7 +3,7 @@ from strands.models.ollama import OllamaModel
 
 # File/config paths
 CONFIG_FILE_PATH = "~/.config/book-strands.conf"
-DEFAULT_OUTPUT_FORMAT = "{{author}}/{{series}}/{{title}}"
+DEFAULT_OUTPUT_PATH = "{{author}}/{{series}}/{{title}}/{{title}} - {{author}}.{{format}}"
 
 # Supported formats (in priority order for downloads)
 SUPPORTED_FORMATS = (
