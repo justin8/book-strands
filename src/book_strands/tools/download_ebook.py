@@ -131,6 +131,8 @@ class ZLibSession(BaseModel):
     session: Session
     logged_in: bool = False
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     def __init__(self, **data):
         if "session" not in data or data["session"] is None:
             session = requests.Session()
@@ -145,9 +147,6 @@ class ZLibSession(BaseModel):
             session.mount("https://", adapter)
             data["session"] = session
         super().__init__(**data)
-
-    class Config:
-        arbitrary_types_allowed = True
 
     def login(self) -> bool:
         """Logs into Z-Library and returns success status."""

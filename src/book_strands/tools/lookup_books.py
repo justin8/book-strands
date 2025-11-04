@@ -2,7 +2,7 @@ import logging
 from functools import lru_cache
 
 from strands import Agent, tool
-from strands.types.models import Model
+from strands.models.model import Model
 from strands_tools import http_request  # type: ignore
 
 from book_strands.constants import BEDROCK_CLAUDE_37_MODEL, ZLIB_SEARCH_URL

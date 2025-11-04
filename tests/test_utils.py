@@ -1,12 +1,15 @@
 import os
 import tempfile
 from unittest import mock
+from unittest.mock import patch
 
+import pytest
 from strands.types.event_loop import Usage
 
 from book_strands.constants import SUPPORTED_FORMATS
 from book_strands.utils import (
     calculate_bedrock_cost,
+    check_requirements,
     ensure_file_has_extension,
     file_extension,
     is_valid_ebook,
@@ -94,3 +97,100 @@ def test_is_valid_ebook():
             os.unlink(invalid_path)
     finally:
         os.unlink(valid_path)
+
+
+def test_check_requirements_all_good():
+    """Test check_requirements when both config and binary exist."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create a valid config file
+        config_file = os.path.join(temp_dir, "config.conf")
+        with open(config_file, "w") as f:
+            f.write("[zlib-logins]\nuser@example.com = password123\n")
+
+        # Create a mock executable binary
+        binary_file = os.path.join(temp_dir, "ebook-meta")
+        with open(binary_file, "w") as f:
+            f.write('#!/bin/bash\necho "mock ebook-meta"')
+        os.chmod(binary_file, 0o755)
+
+        with (
+            patch("book_strands.utils.CONFIG_FILE_PATH", config_file),
+            patch("book_strands.utils.ebook_meta_binary", return_value=binary_file),
+        ):
+            # Should not exit or raise exception
+            check_requirements()
+
+
+def test_check_requirements_missing_config():
+    """Test check_requirements when config file is missing."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create a mock executable binary
+        binary_file = os.path.join(temp_dir, "ebook-meta")
+        with open(binary_file, "w") as f:
+            f.write('#!/bin/bash\necho "mock ebook-meta"')
+        os.chmod(binary_file, 0o755)
+
+        with (
+            patch("book_strands.utils.CONFIG_FILE_PATH", "/nonexistent/config.conf"),
+            patch("book_strands.utils.ebook_meta_binary", return_value=binary_file),
+        ):
+            with pytest.raises(SystemExit) as exc_info:
+                check_requirements()
+            assert exc_info.value.code == 1
+
+
+def test_check_requirements_missing_binary():
+    """Test check_requirements when ebook-meta binary is missing."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create a valid config file
+        config_file = os.path.join(temp_dir, "config.conf")
+        with open(config_file, "w") as f:
+            f.write("[zlib-logins]\nuser@example.com = password123\n")
+
+        with (
+            patch("book_strands.utils.CONFIG_FILE_PATH", config_file),
+            patch(
+                "book_strands.utils.ebook_meta_binary",
+                return_value="/nonexistent/ebook-meta",
+            ),
+        ):
+            with pytest.raises(SystemExit) as exc_info:
+                check_requirements()
+            assert exc_info.value.code == 1
+
+
+def test_check_requirements_non_executable_binary():
+    """Test check_requirements when ebook-meta binary exists but is not executable."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create a valid config file
+        config_file = os.path.join(temp_dir, "config.conf")
+        with open(config_file, "w") as f:
+            f.write("[zlib-logins]\nuser@example.com = password123\n")
+
+        # Create a non-executable binary
+        binary_file = os.path.join(temp_dir, "ebook-meta")
+        with open(binary_file, "w") as f:
+            f.write('#!/bin/bash\necho "mock ebook-meta"')
+        os.chmod(binary_file, 0o644)  # Not executable
+
+        with (
+            patch("book_strands.utils.CONFIG_FILE_PATH", config_file),
+            patch("book_strands.utils.ebook_meta_binary", return_value=binary_file),
+        ):
+            with pytest.raises(SystemExit) as exc_info:
+                check_requirements()
+            assert exc_info.value.code == 1
+
+
+def test_check_requirements_both_missing():
+    """Test check_requirements when both config and binary are missing."""
+    with (
+        patch("book_strands.utils.CONFIG_FILE_PATH", "/nonexistent/config.conf"),
+        patch(
+            "book_strands.utils.ebook_meta_binary",
+            return_value="/nonexistent/ebook-meta",
+        ),
+    ):
+        with pytest.raises(SystemExit) as exc_info:
+            check_requirements()
+        assert exc_info.value.code == 1

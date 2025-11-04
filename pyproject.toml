@@ -1,6 +1,6 @@
 [project]
 name = "book-strands"
-version = "0.7.5"
+version = "0.7.6"
 description = "A powerful CLI tool for managing e-book metadata and organizing your digital library."
 readme = "README.md"
 authors = [
@@ -9,8 +9,8 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "ebooklib>=0.19",
-    "strands-agents[ollama,otel]>=0.1.8",
-    "strands-agents-tools>=0.1.8",
+    "strands-agents[ollama,otel]>=1.14.0",
+    "strands-agents-tools>=0.2.13",
     "click>=8.0.0",
     "beautifulsoup4>=4.13.4",
 ]

@@ -1,11 +1,13 @@
 import logging
 import os
+import shutil
 import sys
 from configparser import ConfigParser
 from functools import lru_cache
 
+from rich.console import Console
 from strands.types.event_loop import Usage
-from strands.types.models import Model
+from strands.models.model import Model
 
 from book_strands.constants import CONFIG_FILE_PATH, SUPPORTED_FORMATS
 
@@ -27,6 +29,40 @@ def load_book_strands_config() -> ConfigParser:
         raise FileNotFoundError(f"Config file not found at {config_path}")
     config.read(config_path)
     return config
+
+
+def check_requirements() -> None:
+    """Check if config file and ebook-meta binary are available.
+
+    Exits with error code 1 if requirements are not met.
+    """
+    console = Console(stderr=True)
+    errors = []
+
+    # Check config file
+    config_path = os.path.expanduser(CONFIG_FILE_PATH)
+    if not os.path.exists(config_path):
+        errors.append(f"Config file not found at {config_path}")
+
+    # Check ebook-meta binary
+    binary_path = ebook_meta_binary()
+    if not shutil.which(binary_path):
+        errors.append(f"ebook-meta binary not found: {binary_path}")
+
+    if errors:
+        for error in errors:
+            console.print(f"ERROR: {error}", style="red")
+
+        console.print("\nExample configuration file content:")
+        console.print("[zlib-logins]")
+        console.print("user@example.com = password123")
+
+        if any("ebook-meta" in error for error in errors):
+            console.print("\nTo install Calibre (which provides ebook-meta):")
+            console.print("- Visit: https://calibre-ebook.com/download")
+            console.print("- Or use your package manager (e.g., apt install calibre)")
+
+        sys.exit(1)
 
 
 def ebook_meta_binary():
