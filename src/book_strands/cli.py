@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 
 import click
 
@@ -11,9 +12,6 @@ from .constants import DEFAULT_OUTPUT_FORMAT
 CONTEXT_SETTINGS = {"help_option_names": ["--help", "-h"]}
 
 log = logging.getLogger(__name__)
-
-# Load the configuration to ensure it exists before making requeests
-config = load_book_strands_config()
 
 
 def configure_logging(verbosity: int):
@@ -58,6 +56,19 @@ def cli(verbose):
     configure_logging(verbose)
 
 
+def _ensure_config():
+    """Ensure config exists, show warning if not."""
+    try:
+        return load_book_strands_config()
+    except FileNotFoundError as e:
+        click.echo(click.style(f"ERROR: {e}", fg="red"), err=True)
+        click.echo(click.style("A configuration file is required to run book-strands.", fg="red"), err=True)
+        click.echo("\nExample configuration file content:", err=True)
+        click.echo("[zlib-logins]", err=True)
+        click.echo("user@example.com = password123", err=True)
+        sys.exit(1)
+
+
 @cli.command(name="agent")
 @click.argument("output-path", type=click.Path())
 @click.argument("query", nargs=-1, type=str)
@@ -79,6 +90,7 @@ def run(
     disable_renames,
 ):
     """Run the agent with INPUT_QUERY and save results to OUTPUT_PATH."""
+    _ensure_config()
     query_str = " ".join(query)
     output_path = os.path.expanduser(output_path)
 
@@ -103,7 +115,7 @@ def run(
 )
 def import_local_books(input_path, output_path, output_format):
     """Import local ebook files from INPUT_PATH, update their metadata and rename them according to OUTPUT_FORMAT."""
-
+    _ensure_config()
     input_path = os.path.expanduser(input_path)
     output_path = os.path.expanduser(output_path)
 
